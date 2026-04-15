@@ -24,3 +24,25 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+@layer utilities {
+  .font-geist-sans {
+    font-family: var(--font-geist-sans);
+  }
+  .font-geist-mono {
+    font-family: var(--font-geist-mono);
+  }
+  .font-aldrich {
+    font-family: var(--font-aldrich);
+  }
+  .font-cormorant {
+    font-family: var(--font-cormorant);
+  }
+}
+
+
+
+@layer utilities {
+  .img-filter-green {
+    filter: hue-rotate(160deg) saturate(300%);
+  }
+}

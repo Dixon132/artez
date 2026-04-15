@@ -31,6 +31,28 @@ export default function HorizontalSection() {
             },
         });
 
+        // Balanceo infinito de la imagen
+        gsap.to(".mi-imagen", {
+            x: 20,
+            duration: 2,
+            yoyo: true,
+            repeat: -1,
+            ease: "sine.inOut",
+        });
+
+        // Fade-in de los textos del slide 1
+        gsap.from(".slide1-text p", {
+            opacity: 0,
+            y: 30,
+            stagger: 0.3,
+            duration: 1.2,
+            ease: "power2.out",
+            scrollTrigger: {
+                trigger: ".slide1-text",
+                start: "top 80%",
+            },
+        });
+
         return () => st.kill();
     }, []);
 
@@ -39,22 +61,24 @@ export default function HorizontalSection() {
             <div ref={trackRef} style={{ display: "flex", width: "300vw", height: "100%" }}>
 
                 {/* ── SLIDE 1 — Hecho a mano ── */}
-                <div style={{
-                    width: "100vw", height: "100vh", flexShrink: 0,
-                    background: "linear-gradient(135deg, #1a0a00 0%, #2d1500 50%, #1a0a00 100%)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                    <div style={{ textAlign: "center", maxWidth: "640px", padding: "0 60px" }}>
-                        <p style={{ fontSize: "11px", letterSpacing: "0.4em", textTransform: "uppercase", color: "#f59e0b", marginBottom: "20px" }}>El Arte del Instrumento</p>
-                        <h2 style={{ fontSize: "80px", fontWeight: 700, color: "#fef3c7", fontFamily: "'Cormorant Garamond', serif", lineHeight: 1, marginBottom: "12px" }}>
-                            Hecho
-                        </h2>
-                        <h2 style={{ fontSize: "80px", fontWeight: 700, color: "#f59e0b", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", lineHeight: 1, marginBottom: "28px" }}>
-                            a mano
-                        </h2>
-                        <div style={{ width: "60px", height: "2px", background: "linear-gradient(to right, #f59e0b, transparent)", margin: "0 auto 28px" }} />
-                        <p style={{ fontSize: "17px", color: "rgba(254,243,199,0.65)", lineHeight: 1.8 }}>
-                            Cada instrumento nace de la tierra, tallado con paciencia ancestral y terminado con el rigor de quien sabe que está creando arte.
+                <div className="font-aldrich w-full h-full bg-linear-to-br bg-[#E8DCC8] bg-[url('/noise4.png')] bg-repeat opacity-90 flex items-center justify-around p-10">
+                    <img
+                        src="/img/art/art1.png"
+                        alt="Decoración"
+                        className="mi-imagen w-1/3 h-auto drop-shadow-2xl"
+                    />
+                    <div className="slide1-text max-w-xl text-justify space-y-6 leading-relaxed border-l-4 border-[#2F5D57] pl-6">
+                        <p className="text-[#2F5D57] font-bold text-[3rem]">
+                            La Construcción: Un Acto de Amor y Tradición
+                        </p>
+                        <p className="text-[#4E8A7F] text-[1.5rem]">
+                            La creación de un charango es un proceso artesanal que fusiona la habilidad del luthier con la mística de la naturaleza.
+                        </p>
+                        <p className="text-[#3F6B5E] text-[1.5rem]">
+                            Antiguamente, se utilizaba el caparazón de armadillo (quirquincho) para su caja de resonancia.
+                        </p>
+                        <p className="text-[#6F8F87] text-[1.5rem]">
+                            Hoy en día, por razones éticas y de conservación, se emplean maderas nobles cuidadosamente seleccionadas. Entre las más apreciadas se encuentran el Naranjillo, el Cedro y el Tarco, cada una aportando características únicas al timbre y la resonancia del instrumento.
                         </p>
                     </div>
                 </div>

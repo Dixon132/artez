@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Modal from "./Modal";
 
 interface Field {
     key: string;
     label: string;
-    type?: "text" | "number" | "email" | "select";
+    type?: "text" | "number" | "email" | "select" | "textarea";
     options?: { value: any; label: string }[];
 }
 
@@ -23,6 +24,7 @@ export default function CrudTable({ title, items, fields, onCreate, onUpdate, on
     const [form, setForm] = useState<any>(emptyForm);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
+    const [modalOpen, setModalOpen] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,6 +37,7 @@ export default function CrudTable({ title, items, fields, onCreate, onUpdate, on
             }
             setForm(emptyForm);
             setEditingId(null);
+            setModalOpen(false);
         } finally {
             setLoading(false);
         }
@@ -43,6 +46,7 @@ export default function CrudTable({ title, items, fields, onCreate, onUpdate, on
     const handleEdit = (item: any) => {
         setEditingId(item.id);
         setForm(Object.fromEntries(fields.map((f) => [f.key, item[f.key] ?? ""])));
+        setModalOpen(true);
     };
 
     const handleDelete = async (id: number) => {
@@ -55,30 +59,110 @@ export default function CrudTable({ title, items, fields, onCreate, onUpdate, on
         }
     };
 
+    const openCreateModal = () => {
+        setForm(emptyForm);
+        setEditingId(null);
+        setModalOpen(true);
+    };
+
     return (
         <div className="p-8">
-            {/* Header */}
-            <div className="mb-6">
-                <h2 className="text-2xl font-bold text-stone-800">{title}</h2>
-                <p className="text-sm text-stone-400 mt-1">{items.length} registro{items.length !== 1 ? "s" : ""}</p>
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h2 className="text-2xl font-bold text-stone-900">{title}</h2>
+                    <p className="text-sm text-stone-500 mt-1">{items.length} registros</p>
+                </div>
+                <button
+                    onClick={openCreateModal}
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+                >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Nuevo
+                </button>
             </div>
 
-            {/* Form */}
-            <div className="bg-white rounded-xl border border-stone-200 shadow-sm p-6 mb-6">
-                <h3 className="text-sm font-semibold text-stone-600 mb-4">
-                    {editingId !== null ? "✏️ Editando registro #" + editingId : "➕ Nuevo registro"}
-                </h3>
-                <form onSubmit={handleSubmit} className="flex flex-wrap gap-4 items-end">
+            <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
+                <table className="w-full">
+                    <thead>
+                        <tr className="bg-stone-50 border-b border-stone-200">
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">ID</th>
+                            {fields.map((f) => (
+                                <th key={f.key} className="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">{f.label}</th>
+                            ))}
+                            <th className="px-6 py-3 text-right text-xs font-semibold text-stone-500 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                        {items.map((item) => (
+                            <tr key={item.id} className="hover:bg-amber-50/50 transition-colors">
+                                <td className="px-6 py-4 text-sm text-stone-400 font-mono">{item.id}</td>
+                                {fields.map((f) => (
+                                    <td key={f.key} className="px-6 py-4 text-sm text-stone-700">
+                                        {f.type === "select"
+                                            ? f.options?.find((o) => o.value == item[f.key])?.label ?? item[f.key]
+                                            : String(item[f.key] ?? "")}
+                                    </td>
+                                ))}
+                                <td className="px-6 py-4 text-right">
+                                    <div className="flex justify-end gap-2">
+                                        <button
+                                            onClick={() => handleEdit(item)}
+                                            className="p-2 text-stone-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(item.id)}
+                                            className="p-2 text-stone-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                        {items.length === 0 && (
+                            <tr>
+                                <td colSpan={fields.length + 2} className="px-6 py-12 text-center text-stone-400">
+                                    No hay registros
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            <Modal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                title={editingId !== null ? `Editar ${title}` : `Nuevo ${title}`}
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
                     {fields.map((f) => (
-                        <div key={f.key} className="flex flex-col gap-1 min-w-36">
-                            <label className="text-xs font-medium text-stone-500 uppercase tracking-wide">{f.label}</label>
-                            {f.type === "select" ? (
+                        <div key={f.key}>
+                            <label className="block text-sm font-medium text-stone-700 mb-1">{f.label}</label>
+                            {f.type === "textarea" ? (
+                                <textarea
+                                    value={form[f.key]}
+                                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                                    rows={4}
+                                    required
+                                />
+                            ) : f.type === "select" ? (
                                 <select
                                     value={form[f.key]}
                                     onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                                    className="px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                                    required
                                 >
-                                    <option value="">-- seleccionar --</option>
+                                    <option value="">Seleccionar...</option>
                                     {f.options?.map((o) => (
                                         <option key={o.value} value={o.value}>{o.label}</option>
                                     ))}
@@ -88,84 +172,30 @@ export default function CrudTable({ title, items, fields, onCreate, onUpdate, on
                                     type={f.type || "text"}
                                     value={form[f.key]}
                                     onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                                    className="px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
                                     required
                                 />
                             )}
                         </div>
                     ))}
-                    <div className="flex gap-2">
+                    <div className="flex justify-end gap-3 pt-4">
+                        <button
+                            type="button"
+                            onClick={() => setModalOpen(false)}
+                            className="px-4 py-2 text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"
+                        >
+                            Cancelar
+                        </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
                         >
-                            {editingId !== null ? "Actualizar" : "Crear"}
+                            {loading ? "Guardando..." : editingId !== null ? "Actualizar" : "Crear"}
                         </button>
-                        {editingId !== null && (
-                            <button
-                                type="button"
-                                onClick={() => { setForm(emptyForm); setEditingId(null); }}
-                                className="px-5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium rounded-lg transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                        )}
                     </div>
                 </form>
-            </div>
-
-            {/* Table */}
-            <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
-                <table className="w-full text-sm">
-                    <thead>
-                        <tr className="bg-stone-50 border-b border-stone-200">
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wide">ID</th>
-                            {fields.map((f) => (
-                                <th key={f.key} className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wide">{f.label}</th>
-                            ))}
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wide">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stone-100">
-                        {items.map((item) => (
-                            <tr key={item.id} className="hover:bg-amber-50 transition-colors">
-                                <td className="px-4 py-3 text-stone-400 font-mono text-xs">{item.id}</td>
-                                {fields.map((f) => (
-                                    <td key={f.key} className="px-4 py-3 text-stone-700">
-                                        {f.type === "select"
-                                            ? f.options?.find((o) => o.value == item[f.key])?.label ?? item[f.key]
-                                            : String(item[f.key] ?? "")}
-                                    </td>
-                                ))}
-                                <td className="px-4 py-3">
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => handleEdit(item)}
-                                            className="px-3 py-1.5 text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-md transition-colors"
-                                        >
-                                            Editar
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(item.id)}
-                                            className="px-3 py-1.5 text-xs font-medium bg-red-50 hover:bg-red-100 text-red-600 rounded-md transition-colors"
-                                        >
-                                            Eliminar
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                        {items.length === 0 && (
-                            <tr>
-                                <td colSpan={fields.length + 2} className="px-4 py-10 text-center text-stone-400">
-                                    Sin registros aún
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+            </Modal>
         </div>
     );
 }

@@ -1,0 +1,1 @@
+# Esta app ya no se usa - el sistema usa session_id en lugar de usuarios
