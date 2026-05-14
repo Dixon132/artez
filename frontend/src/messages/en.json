@@ -1,0 +1,84 @@
+{
+  "navbar": {
+    "home": "Home",
+    "products": "Products",
+    "cart": "Cart",
+    "about": "About",
+    "language": "Language"
+  },
+  "home": {
+    "title": "Artisan Instruments from Bolivia",
+    "subtitle": "Handcrafted with tradition",
+    "metaDescription": "Discover handcrafted Bolivian artisan instruments. Charangos, Ronrocos, and Walaychos made with traditional craftsmanship."
+  },
+  "products": {
+    "title": "Our Instruments",
+    "metaTitle": "Our Instruments ({count} products)",
+    "metaDescription": "Browse our collection of handcrafted Bolivian instruments. Discover authentic charangos, ronrocos, and more artisan pieces.",
+    "category": "Category",
+    "addToCart": "Add to Cart",
+    "adding": "Adding...",
+    "addedToCart": "Product added to cart",
+    "viewDetails": "View Details",
+    "backToProducts": "Back to products",
+    "notFound": "Product not found",
+    "quantity": "Quantity",
+    "selectAllOptions": "Please select all options",
+    "securePay": "Secure payment",
+    "fastShipping": "Fast shipping",
+    "returns": "Returns",
+    "errorLoading": "Could not load product information",
+    "retryLoad": "Try again"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "emptyDescription": "Add products to start your purchase",
+    "viewProducts": "View Products",
+    "remove": "Remove",
+    "removeConfirm": "Remove this product from cart?",
+    "summary": "Summary",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "checkout": "Proceed to Checkout"
+  },
+  "checkout": {
+    "title": "Complete Purchase",
+    "backToCart": "Back to cart",
+    "contactInfo": "Contact Information",
+    "email": "Email",
+    "fullName": "Full Name",
+    "shippingAddress": "Shipping Address",
+    "street": "Street Address",
+    "streetPlaceholder": "Street name, building number, apt/floor",
+    "city": "City",
+    "state": "State / Department",
+    "country": "Country",
+    "postalCode": "Postal Code",
+    "addressHelper": "Please provide a complete street address including building number and any apartment or floor reference for international delivery from Bolivia.",
+    "required": "This field is required",
+    "confirmOrder": "Confirm Order",
+    "processing": "Processing..."
+  },
+  "about": {
+    "title": "About Us",
+    "description": "Traditional Bolivian instrument craftsmanship",
+    "metaTitle": "About Artesena",
+    "metaDescription": "Learn about Artesena, dedicated to preserving traditional Bolivian instrument craftsmanship. Handcrafted charangos, ronrocos, and walaychos."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "description": "Get in touch with Artesena for inquiries about our handcrafted Bolivian instruments.",
+    "metaTitle": "Contact Artesena",
+    "metaDescription": "Contact Artesena for inquiries about handcrafted Bolivian instruments. Charangos, Ronrocos, and Walaychos made with traditional craftsmanship.",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "message": "Send us a message"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Try again"
+  }
+}

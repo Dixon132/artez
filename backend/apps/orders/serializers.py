@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from .models import Cart, CartItem, CartItemOption, Order, OrderItem, OrderItemOption
-from apps.products.models import Product, Option, OptionValue
+from apps.products.models import (
+    Product, Option, OptionValue,
+    ProductTranslation, OptionTranslation, OptionValueTranslation,
+)
 
 
 # ==============================
@@ -9,25 +12,58 @@ from apps.products.models import Product, Option, OptionValue
 
 class CartItemOptionSerializer(serializers.ModelSerializer):
     """Serializer de opciones seleccionadas en item de carrito"""
-    option_name = serializers.CharField(source='option.name', read_only=True)
-    value_name = serializers.CharField(source='value.name', read_only=True)
+    option_name = serializers.SerializerMethodField()
+    value_name = serializers.SerializerMethodField()
     extra_price = serializers.DecimalField(source='value.base_extra_price', max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
         model = CartItemOption
         fields = ['id', 'option', 'value', 'option_name', 'value_name', 'extra_price']
 
+    def get_option_name(self, obj):
+        """Return translated option name if lang is in context, otherwise base name."""
+        lang = self.context.get('lang')
+        if lang:
+            translation = OptionTranslation.objects.filter(
+                option=obj.option, language=lang
+            ).first()
+            if translation:
+                return translation.name
+        return obj.option.name
+
+    def get_value_name(self, obj):
+        """Return translated option value name if lang is in context, otherwise base name."""
+        lang = self.context.get('lang')
+        if lang:
+            translation = OptionValueTranslation.objects.filter(
+                option_value=obj.value, language=lang
+            ).first()
+            if translation:
+                return translation.name
+        return obj.value.name
+
 
 class CartItemSerializer(serializers.ModelSerializer):
     """Serializer de item de carrito con opciones"""
     selected_options = CartItemOptionSerializer(many=True, read_only=True)
-    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_name = serializers.SerializerMethodField()
     product_price = serializers.DecimalField(source='product.base_price', max_digits=10, decimal_places=2, read_only=True)
     product_image = serializers.SerializerMethodField()
 
     class Meta:
         model = CartItem
         fields = ['id', 'product', 'product_name', 'product_price', 'product_image', 'quantity', 'selected_options']
+
+    def get_product_name(self, obj):
+        """Return translated product name if lang is in context, otherwise base name."""
+        lang = self.context.get('lang')
+        if lang:
+            translation = ProductTranslation.objects.filter(
+                product=obj.product, language=lang
+            ).first()
+            if translation:
+                return translation.name
+        return obj.product.name
 
     def get_product_image(self, obj):
         """Obtener primera imagen del producto"""
@@ -77,7 +113,7 @@ class AddToCartSerializer(serializers.Serializer):
     """
     session_id = serializers.CharField(max_length=255)
     product_id = serializers.IntegerField()
-    quantity = serializers.IntegerField(min_value=1, default=1)
+    quantity = serializers.IntegerField(min_value=1, max_value=99, default=1)
     options = serializers.ListField(
         child=serializers.DictField(),
         required=False,

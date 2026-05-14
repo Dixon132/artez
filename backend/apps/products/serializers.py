@@ -20,16 +20,15 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
     def to_representation(self, instance):
-        """Aplica traducción si existe ?lang=xx"""
         data = super().to_representation(instance)
         request = self.context.get('request')
-        
         if request:
             lang = request.query_params.get('lang', 'es')
             translation = instance.translations.filter(language=lang).first()
+            if not translation and lang != 'es':
+                translation = instance.translations.filter(language='es').first()
             if translation:
                 data['name'] = translation.name
-        
         return data
 
 
@@ -65,16 +64,15 @@ class OptionValueSerializer(serializers.ModelSerializer):
         return obj.image.url if obj.image else None
 
     def to_representation(self, instance):
-        """Aplica traducción si existe ?lang=xx"""
         data = super().to_representation(instance)
         request = self.context.get('request')
-        
         if request:
             lang = request.query_params.get('lang', 'es')
             translation = instance.translations.filter(language=lang).first()
+            if not translation and lang != 'es':
+                translation = instance.translations.filter(language='es').first()
             if translation:
                 data['name'] = translation.name
-        
         return data
 
 
@@ -87,16 +85,15 @@ class OptionSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'values']
 
     def to_representation(self, instance):
-        """Aplica traducción si existe ?lang=xx"""
         data = super().to_representation(instance)
         request = self.context.get('request')
-        
         if request:
             lang = request.query_params.get('lang', 'es')
             translation = instance.translations.filter(language=lang).first()
+            if not translation and lang != 'es':
+                translation = instance.translations.filter(language='es').first()
             if translation:
                 data['name'] = translation.name
-        
         return data
 
 
@@ -129,17 +126,16 @@ class ProductSerializer(serializers.ModelSerializer):
         ]
 
     def to_representation(self, instance):
-        """Aplica traducción si existe ?lang=xx"""
         data = super().to_representation(instance)
         request = self.context.get('request')
-        
         if request:
             lang = request.query_params.get('lang', 'es')
             translation = instance.translations.filter(language=lang).first()
+            if not translation and lang != 'es':
+                translation = instance.translations.filter(language='es').first()
             if translation:
                 data['name'] = translation.name
                 data['description'] = translation.description
-        
         return data
 
 

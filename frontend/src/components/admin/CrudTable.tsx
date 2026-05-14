@@ -151,7 +151,7 @@ export default function CrudTable({ title, items, fields, onCreate, onUpdate, on
                                 <textarea
                                     value={form[f.key]}
                                     onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent text-stone-900"
                                     rows={4}
                                     required
                                 />
@@ -159,7 +159,7 @@ export default function CrudTable({ title, items, fields, onCreate, onUpdate, on
                                 <select
                                     value={form[f.key]}
                                     onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent text-stone-900"
                                     required
                                 >
                                     <option value="">Seleccionar...</option>
@@ -172,7 +172,7 @@ export default function CrudTable({ title, items, fields, onCreate, onUpdate, on
                                     type={f.type || "text"}
                                     value={form[f.key]}
                                     onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent text-stone-900"
                                     required
                                 />
                             )}

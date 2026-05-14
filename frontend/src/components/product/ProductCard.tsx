@@ -1,5 +1,4 @@
-import Link from "next/link";
-import Image from "next/image";
+import { Link } from "@/lib/navigation";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -8,14 +7,15 @@ export default function ProductCard({ product, locale }: { product: any; locale:
 
     return (
         <Link
-            href={`/${locale}/products/${product.id}`}
+            href={{ pathname: "/products/[id]" as const, params: { id: String(product.id) } }}
             className="group block bg-white rounded-2xl overflow-hidden border border-stone-200 hover:border-amber-400 hover:shadow-2xl transition-all duration-500"
         >
             <div className="relative overflow-hidden aspect-[3/4] bg-gradient-to-br from-stone-100 to-stone-200">
                 {imageUrl ? (
                     <img
                         src={imageUrl}
-                        alt={product.name}
+                        alt={product.name || "Product image"}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                 ) : (

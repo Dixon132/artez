@@ -6,13 +6,13 @@ const API_URL = 'http://127.0.0.1:8000/api';
 
 export const productsApi = {
     // Listar productos
-    list: async (lang = 'es') => {
+    list: async (lang = 'en') => {
         const res = await fetch(`${API_URL}/products/?lang=${lang}`);
         return res.json();
     },
 
     // Obtener producto
-    get: async (id: number, lang = 'es') => {
+    get: async (id: number, lang = 'en') => {
         const res = await fetch(`${API_URL}/products/${id}/?lang=${lang}`);
         return res.json();
     },
@@ -70,13 +70,13 @@ export const productsApi = {
 // ==============================
 
 export const categoriesApi = {
-    list: async (lang = 'es') => {
+    list: async (lang = 'en') => {
         const res = await fetch(`${API_URL}/categories/?lang=${lang}`);
         return res.json();
     },
 
-    get: async (id: number) => {
-        const res = await fetch(`${API_URL}/categories/${id}/`);
+    get: async (id: number, lang = 'en') => {
+        const res = await fetch(`${API_URL}/categories/${id}/?lang=${lang}`);
         return res.json();
     },
 
@@ -111,13 +111,13 @@ export const categoriesApi = {
 // ==============================
 
 export const optionsApi = {
-    list: async () => {
-        const res = await fetch(`${API_URL}/options/`);
+    list: async (lang = 'en') => {
+        const res = await fetch(`${API_URL}/options/?lang=${lang}`);
         return res.json();
     },
 
-    get: async (id: number) => {
-        const res = await fetch(`${API_URL}/options/${id}/`);
+    get: async (id: number, lang = 'en') => {
+        const res = await fetch(`${API_URL}/options/${id}/?lang=${lang}`);
         return res.json();
     },
 
@@ -152,8 +152,13 @@ export const optionsApi = {
 // ==============================
 
 export const optionValuesApi = {
-    list: async () => {
-        const res = await fetch(`${API_URL}/option-values/`);
+    list: async (lang = 'en') => {
+        const res = await fetch(`${API_URL}/option-values/?lang=${lang}`);
+        return res.json();
+    },
+
+    get: async (id: number, lang = 'en') => {
+        const res = await fetch(`${API_URL}/option-values/${id}/?lang=${lang}`);
         return res.json();
     },
 
@@ -187,8 +192,9 @@ export const optionValuesApi = {
 
 export const cartApi = {
     // Obtener carrito
-    get: async (sessionId: string) => {
-        const res = await fetch(`${API_URL}/cart/${sessionId}/`);
+    get: async (sessionId: string, lang?: string) => {
+        const params = lang ? `?lang=${lang}` : '';
+        const res = await fetch(`${API_URL}/cart/${sessionId}/${params}`);
         return res.json();
     },
 

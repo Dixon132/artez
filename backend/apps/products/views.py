@@ -15,9 +15,7 @@ from .serializers import (
 )
 
 
-# ==============================
-# 📦 PRODUCTS VIEWSET
-# ==============================
+
 
 class ProductViewSet(ModelViewSet):
     """
@@ -82,30 +80,10 @@ class ProductViewSet(ModelViewSet):
             return Response({'error': 'Imagen no encontrada'}, status=status.HTTP_404_NOT_FOUND)
 
 
-# ==============================
-# 🗂️ CATEGORIES VIEWSET
-# ==============================
 
-class CategoryViewSet(ModelViewSet):
-    """
-    ViewSet para categorías con soporte i18n
-    
-    ENDPOINTS:
-    
-    GET /api/categories/
-    - Lista todas las categorías
-    
-    POST /api/categories/
-    - Crear categoría (admin)
-    
-    PUT /api/categories/{id}/
-    - Actualizar categoría (admin)
-    
-    DELETE /api/categories/{id}/
-    - Eliminar categoría (admin)
-    """
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+
+
+
 
 
 # ==============================
@@ -187,3 +165,25 @@ class OptionTranslationViewSet(ModelViewSet):
 class OptionValueTranslationViewSet(ModelViewSet):
     queryset = OptionValueTranslation.objects.all()
     serializer_class = OptionValueTranslationSerializer
+
+
+class CategoryViewSet(ModelViewSet):
+    """
+    ViewSet para categorías con soporte i18n
+    
+    ENDPOINTS:
+    
+    GET /api/categories/
+    - Lista todas las categorías
+    
+    POST /api/categories/
+    - Crear categoría (admin)
+    
+    PUT /api/categories/{id}/
+    - Actualizar categoría (admin)
+    
+    DELETE /api/categories/{id}/
+    - Eliminar categoría (admin)
+    """
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer

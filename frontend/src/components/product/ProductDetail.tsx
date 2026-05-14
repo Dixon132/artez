@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -31,9 +32,11 @@ export default function ProductDetail({ product }: { product: any }) {
                             onClick={() => setIsZoomed(!isZoomed)}
                         >
                             {mainImage ? (
-                                <img
+                                <Image
                                     src={mainImage}
-                                    alt={product.name}
+                                    alt={product.name || "Product image"}
+                                    width={800}
+                                    height={800}
                                     className={`w-full h-full object-cover transition-transform duration-500 ${isZoomed ? "scale-150" : "scale-100"}`}
                                 />
                             ) : (
@@ -61,7 +64,14 @@ export default function ProductDetail({ product }: { product: any }) {
                                                 : "border-stone-200 hover:border-stone-400"
                                         }`}
                                     >
-                                        <img src={`${API_URL}${img.image}`} alt="" className="w-full h-full object-cover" />
+                                        <Image
+                                            src={`${API_URL}${img.image}`}
+                                            alt={`${product.name} thumbnail ${i + 1}`}
+                                            width={200}
+                                            height={200}
+                                            loading="lazy"
+                                            className="w-full h-full object-cover"
+                                        />
                                     </button>
                                 ))}
                             </div>

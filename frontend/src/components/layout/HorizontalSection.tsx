@@ -65,7 +65,7 @@ export default function HorizontalSection() {
                     <img
                         src="/img/art/art1.png"
                         alt="Decoración"
-                        className="mi-imagen w-1/3 h-auto drop-shadow-2xl"
+                        className=" mi-imagen w-1/3 h-auto drop-shadow-2xl"
                     />
                     <div className="slide1-text max-w-xl text-justify space-y-6 leading-relaxed border-l-4 border-[#2F5D57] pl-6">
                         <p className="text-[#2F5D57] font-bold text-[3rem]">

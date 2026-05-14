@@ -1,3 +1,5 @@
+import re
+
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,6 +11,9 @@ from .serializers import (
     OrderSerializer, CreateOrderSerializer, UpdateOrderStatusSerializer
 )
 from apps.products.models import Product, Option, OptionValue
+
+# Pattern for valid session IDs: session_{timestamp}_{9 lowercase alphanumeric chars}
+SESSION_ID_PATTERN = re.compile(r'^session_\d+_[a-z0-9]{9}$')
 
 
 # ==============================
@@ -38,16 +43,11 @@ class CartViewSet(ViewSet):
     """
 
     def retrieve(self, request, pk=None):
-        """Obtener carrito por session_id"""
-        try:
-            cart = Cart.objects.get(session_id=pk)
-            serializer = CartSerializer(cart, context={'request': request})
-            return Response(serializer.data)
-        except Cart.DoesNotExist:
-            # Crear carrito vacío si no existe
-            cart = Cart.objects.create(session_id=pk)
-            serializer = CartSerializer(cart, context={'request': request})
-            return Response(serializer.data)
+        """Obtener carrito por session_id. Crea uno vacío si no existe."""
+        lang = request.query_params.get('lang', None)
+        cart, _created = Cart.objects.get_or_create(session_id=pk)
+        serializer = CartSerializer(cart, context={'request': request, 'lang': lang})
+        return Response(serializer.data)
 
     @action(detail=False, methods=['post'])
     def add_item(self, request):
@@ -55,6 +55,9 @@ class CartViewSet(ViewSet):
         serializer = AddToCartSerializer(data=request.data)
         
         if not serializer.is_valid():
+            # Check if quantity validation failed to return consistent error message
+            if 'quantity' in serializer.errors:
+                return Response({'error': 'Quantity must be between 1 and 99'}, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
@@ -62,6 +65,13 @@ class CartViewSet(ViewSet):
         product_id = data['product_id']
         quantity = data.get('quantity', 1)
         options = data.get('options', [])
+
+        # Validate session_id format: session_{timestamp}_{9 lowercase alphanumeric chars}
+        if not SESSION_ID_PATTERN.match(session_id):
+            return Response(
+                {'error': 'Invalid session ID format'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             product = Product.objects.get(id=product_id)
@@ -121,17 +131,27 @@ class CartViewSet(ViewSet):
             cart_item = CartItem.objects.get(id=item_id, cart=cart)
             quantity = request.data.get('quantity')
             
-            if quantity and quantity > 0:
-                cart_item.quantity = quantity
-                cart_item.save()
-                
-                cart_serializer = CartSerializer(cart, context={'request': request})
-                return Response({
-                    'message': 'Cantidad actualizada',
-                    'cart': cart_serializer.data
-                })
-            else:
-                return Response({'error': 'Cantidad inválida'}, status=status.HTTP_400_BAD_REQUEST)
+            if quantity is None:
+                return Response({'error': 'Quantity must be between 1 and 99'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Ensure quantity is an integer
+            try:
+                quantity = int(quantity)
+            except (TypeError, ValueError):
+                return Response({'error': 'Quantity must be between 1 and 99'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Validate quantity range (1-99 inclusive)
+            if quantity < 1 or quantity > 99:
+                return Response({'error': 'Quantity must be between 1 and 99'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            cart_item.quantity = quantity
+            cart_item.save()
+            
+            cart_serializer = CartSerializer(cart, context={'request': request})
+            return Response({
+                'message': 'Cantidad actualizada',
+                'cart': cart_serializer.data
+            })
         except (Cart.DoesNotExist, CartItem.DoesNotExist):
             return Response({'error': 'Item no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 

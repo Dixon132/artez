@@ -1,0 +1,84 @@
+{
+  "navbar": {
+    "home": "Inicio",
+    "products": "Productos",
+    "cart": "Carrito",
+    "about": "Nosotros",
+    "language": "Idioma"
+  },
+  "home": {
+    "title": "Instrumentos Artesanales de Bolivia",
+    "subtitle": "Hechos a mano con tradición",
+    "metaDescription": "Descubre instrumentos artesanales bolivianos hechos a mano. Charangos, Ronrocos y Walaychos elaborados con artesanía tradicional."
+  },
+  "products": {
+    "title": "Nuestros Instrumentos",
+    "metaTitle": "Nuestros Instrumentos ({count} productos)",
+    "metaDescription": "Explora nuestra colección de instrumentos bolivianos artesanales. Descubre charangos, ronrocos y más piezas auténticas.",
+    "category": "Categoría",
+    "addToCart": "Agregar al Carrito",
+    "adding": "Agregando...",
+    "addedToCart": "Producto agregado al carrito",
+    "viewDetails": "Ver Detalles",
+    "backToProducts": "Volver a productos",
+    "notFound": "Producto no encontrado",
+    "quantity": "Cantidad",
+    "selectAllOptions": "Por favor selecciona todas las opciones",
+    "securePay": "Pago seguro",
+    "fastShipping": "Envío rápido",
+    "returns": "Devoluciones",
+    "errorLoading": "No se pudo cargar la información del producto",
+    "retryLoad": "Intentar de nuevo"
+  },
+  "cart": {
+    "title": "Carrito de Compras",
+    "empty": "Tu carrito está vacío",
+    "emptyDescription": "Agrega productos para iniciar tu compra",
+    "viewProducts": "Ver Productos",
+    "remove": "Eliminar",
+    "removeConfirm": "¿Eliminar este producto del carrito?",
+    "summary": "Resumen",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "checkout": "Proceder al Pago"
+  },
+  "checkout": {
+    "title": "Completar Compra",
+    "backToCart": "Volver al carrito",
+    "contactInfo": "Información de Contacto",
+    "email": "Correo Electrónico",
+    "fullName": "Nombre Completo",
+    "shippingAddress": "Dirección de Envío",
+    "street": "Dirección",
+    "streetPlaceholder": "Nombre de calle, número, depto/piso",
+    "city": "Ciudad",
+    "state": "Estado / Departamento",
+    "country": "País",
+    "postalCode": "Código Postal",
+    "addressHelper": "Por favor proporcione una dirección completa incluyendo número de edificio y cualquier referencia de departamento o piso para envío internacional desde Bolivia.",
+    "required": "Este campo es obligatorio",
+    "confirmOrder": "Confirmar Pedido",
+    "processing": "Procesando..."
+  },
+  "about": {
+    "title": "Sobre Nosotros",
+    "description": "Artesanía tradicional boliviana de instrumentos",
+    "metaTitle": "Sobre Artesena",
+    "metaDescription": "Conoce Artesena, dedicada a preservar la artesanía tradicional boliviana de instrumentos. Charangos, ronrocos y walaychos hechos a mano."
+  },
+  "contact": {
+    "title": "Contáctanos",
+    "description": "Ponte en contacto con Artesena para consultas sobre nuestros instrumentos bolivianos artesanales.",
+    "metaTitle": "Contacto Artesena",
+    "metaDescription": "Contacta a Artesena para consultas sobre instrumentos bolivianos artesanales. Charangos, Ronrocos y Walaychos elaborados con artesanía tradicional.",
+    "email": "Correo Electrónico",
+    "phone": "Teléfono",
+    "address": "Dirección",
+    "message": "Envíanos un mensaje"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "retry": "Intentar de nuevo"
+  }
+}
