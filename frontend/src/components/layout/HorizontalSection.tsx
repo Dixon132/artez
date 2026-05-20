@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Image from "next/image";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -62,11 +63,15 @@ export default function HorizontalSection() {
 
                 {/* ── SLIDE 1 — Hecho a mano ── */}
                 <div className="font-aldrich w-full h-full bg-linear-to-br bg-[#E8DCC8] bg-[url('/noise4.png')] bg-repeat opacity-90 flex items-center justify-around p-10">
-                    <img
-                        src="/img/art/art1.png"
-                        alt="Decoración"
-                        className=" mi-imagen w-1/3 h-auto drop-shadow-2xl"
-                    />
+                    <div className="relative w-1/3 aspect-square mi-imagen drop-shadow-2xl">
+                        <Image
+                            src="/img/art/art1.png"
+                            alt="Decoración"
+                            fill
+                            sizes="33vw"
+                            className="object-contain"
+                        />
+                    </div>
                     <div className="slide1-text max-w-xl text-justify space-y-6 leading-relaxed border-l-4 border-[#2F5D57] pl-6">
                         <p className="text-[#2F5D57] font-bold text-[3rem]">
                             La Construcción: Un Acto de Amor y Tradición

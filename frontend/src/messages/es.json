@@ -28,7 +28,8 @@
     "fastShipping": "Envío rápido",
     "returns": "Devoluciones",
     "errorLoading": "No se pudo cargar la información del producto",
-    "retryLoad": "Intentar de nuevo"
+    "retryLoad": "Intentar de nuevo",
+    "total": "Total"
   },
   "cart": {
     "title": "Carrito de Compras",

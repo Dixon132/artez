@@ -47,6 +47,10 @@ export default function CheckoutPage() {
         postalCode: "",
     });
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+    
+    // Simulación de pasarela de pago para la presentación de demostración
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [selectedMethod, setSelectedMethod] = useState<"qr" | "card" | "paypal">("qr");
 
     useEffect(() => {
         loadCart();
@@ -86,6 +90,12 @@ export default function CheckoutPage() {
             return;
         }
 
+        // Abre el modal de pasarela de pagos simulada
+        setShowPaymentModal(true);
+    };
+
+    const executeOrderCreation = async () => {
+        setShowPaymentModal(false);
         setSubmitting(true);
         try {
             const sessionId = getSessionId();
@@ -96,7 +106,7 @@ export default function CheckoutPage() {
                 full_name: form.full_name,
                 address: formattedAddress,
             });
-            router.push(`/checkout/success?order=${response.order.id}`);
+            router.push(`/checkout/success?order=${response.order.id}` as any);
         } catch (error) {
             alert("Error al crear la orden");
         } finally {
@@ -317,6 +327,158 @@ export default function CheckoutPage() {
                     </div>
                 </form>
             </div>
+
+            {/* ── Modal de Pago Simulado (Presentación de Demostración) ── */}
+            {showPaymentModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/85 backdrop-blur-md">
+                    <div className="bg-white border border-stone-200/80 rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden flex flex-col p-6 md:p-8 animate-in fade-in zoom-in duration-200">
+                        {/* Header */}
+                        <div className="flex justify-between items-center border-b border-stone-100 pb-4">
+                            <h3 className="font-serif text-2xl font-semibold text-stone-900">
+                                Método de Pago
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setShowPaymentModal(false)}
+                                className="text-stone-400 hover:text-stone-600 transition-colors p-1.5 hover:bg-stone-50 rounded-full"
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                                    <path d="M18 6L6 18M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Tabs */}
+                        <div className="grid grid-cols-3 gap-2.5 mt-6">
+                            {(["qr", "card", "paypal"] as const).map((method) => {
+                                const active = selectedMethod === method;
+                                const label = method === "qr" ? "Código QR" : method === "card" ? "Tarjeta" : "PayPal";
+                                return (
+                                    <button
+                                        key={method}
+                                        type="button"
+                                        onClick={() => setSelectedMethod(method)}
+                                        className={[
+                                            "py-3 px-1 rounded-xl text-xs font-semibold border-2 transition-all duration-200 text-center",
+                                            active
+                                                ? "border-amber-500 bg-amber-50/50 text-amber-950 font-bold shadow-amber-100 shadow-md"
+                                                : "border-stone-200 bg-stone-50 text-stone-500 hover:border-stone-300 hover:text-stone-700",
+                                        ].join(" ")}
+                                    >
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Panels */}
+                        <div className="mt-6 flex-1">
+                            {selectedMethod === "qr" && (
+                                <div className="text-center flex flex-col items-center gap-4">
+                                    <p className="text-stone-600 text-xs font-light leading-relaxed">
+                                        Escanea este código QR desde tu app bancaria móvil de preferencia para efectuar la simulación de transferencia.
+                                    </p>
+                                    
+                                    {/* Mock QR display with glowing amber borders */}
+                                    <div className="p-4 bg-gradient-to-br from-[#faf8f5] to-amber-50 border border-amber-200 rounded-3xl shadow-sm relative group">
+                                        <svg width="150" height="150" viewBox="0 0 29 29" fill="none" className="text-stone-900 mx-auto">
+                                            {/* Outer Frame */}
+                                            <path d="M0 0h7v7H0V0zm1 1v5h5V1H1zm1 1h3v3H2V2zm0 20h7v7H0v-7zm1 1v5h5v-5H1zm1 1h3v3H2v-3zm20-22h7v7h-7V0zm1 1v5h5V1h-5zm1 1h3v3H23V2z" fill="currentColor"/>
+                                            {/* Dummy QR pixels pattern */}
+                                            <path d="M9 0h1v1H9V0zm2 0h2v1h-2V0zm3 0h1v1h-1V0zm2 0h2v1h-2V0zm4 0h1v1h-1V0zm-12 2h1v1H9V2zm4 0h1v1h-1V2zm3 0h1v2h-1V2zm3 0h1v1h-1V2zm2 0h2v1h-2V2zm-9 4h1v1H9V4zm4 0h1v1h-1V4zm4 0h2v1h-2V4zm2 0h1v1h-1V4zm-11 2h1v1H8V6zm2 0h1v1h-1V6zm3 0h3v1h-3V6zm5 0h1v1h-1V6zm-10 8h1v1H9v-1zm2 0h2v1h-2v-1zm3 0h2v1h-2v-1zm4 0h2v1h-2v-1zm-11 2h2v1H8v-1zm3 0h1v1h-1v-1zm3 0h2v1h-2v-1zm4 0h1v1h-1v-1zm-11 2h1v1H9v-1zm3 0h1v1h-1v-1zm3 0h2v1h-2v-1zm3 0h1v1h-1v-1zm-11 2h2v1H8v-1zm4 0h2v1h-2v-1zm3 0h1v1h-1v-1zm-11 2h1v1H9v-1zm2 0h1v1h-1v-1zm3 0h1v1h-1v-1zm3 0h3v1h-3v-1zm-10 2h1v1H9v-1zm3 0h2v1h-2v-1zm3 0h1v1h-1v-1zm2 0h2v1h-2v-1z" fill="currentColor"/>
+                                        </svg>
+                                        <div className="absolute inset-0 border border-amber-500/10 rounded-3xl pointer-events-none group-hover:border-amber-500/25 transition-all duration-300" />
+                                    </div>
+
+                                    <div className="text-[10px] text-stone-400 font-sans uppercase tracking-wider mt-1">
+                                        Monto total a pagar: <span className="font-serif text-stone-850 font-bold text-base block mt-0.5">${cart.total.toFixed(2)}</span>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={executeOrderCreation}
+                                        className="w-full mt-2 py-3.5 bg-stone-900 hover:bg-stone-800 text-white font-semibold rounded-2xl transition-all duration-200 shadow-xl shadow-stone-900/10 active:scale-[0.98] text-[15px]"
+                                    >
+                                        Aceptar y Confirmar Pago
+                                    </button>
+                                </div>
+                            )}
+
+                            {selectedMethod === "card" && (
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1.5">Nombre en la tarjeta</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Juan Pérez"
+                                            disabled
+                                            className="w-full px-4 py-3 border border-stone-200 rounded-xl bg-stone-50 text-stone-400 cursor-not-allowed text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1.5">Número de tarjeta</label>
+                                        <input
+                                            type="text"
+                                            placeholder="•••• •••• •••• ••••"
+                                            disabled
+                                            className="w-full px-4 py-3 border border-stone-200 rounded-xl bg-stone-50 text-stone-400 cursor-not-allowed text-sm"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1.5">Vencimiento</label>
+                                            <input
+                                                type="text"
+                                                placeholder="MM/AA"
+                                                disabled
+                                                className="w-full px-4 py-3 border border-stone-200 rounded-xl bg-stone-50 text-stone-400 cursor-not-allowed text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1.5">CVV</label>
+                                            <input
+                                                type="text"
+                                                placeholder="•••"
+                                                disabled
+                                                className="w-full px-4 py-3 border border-stone-200 rounded-xl bg-stone-50 text-stone-400 cursor-not-allowed text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-amber-50/70 border border-amber-200/60 rounded-2xl p-4 flex gap-3 text-xs text-amber-800 leading-relaxed mt-2">
+                                        <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <div>
+                                            <span className="font-bold block mb-0.5">Cobro por Tarjeta Inactivo</span>
+                                            Esta pasarela de pago simulada está inactiva en la presentación. Por favor, selecciona la pestaña **Código QR** para confirmar tu orden de prueba.
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedMethod === "paypal" && (
+                                <div className="flex flex-col items-center gap-6 py-4">
+                                    {/* Mock PayPal Button */}
+                                    <div className="w-full py-4 bg-[#ffc439] rounded-2xl flex items-center justify-center font-bold text-[#003087] font-sans italic text-lg select-none cursor-not-allowed shadow-sm opacity-90 border border-amber-400">
+                                        PayPal
+                                    </div>
+
+                                    <div className="bg-amber-50/70 border border-amber-200/60 rounded-2xl p-4 flex gap-3 text-xs text-amber-800 leading-relaxed max-w-sm">
+                                        <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <div>
+                                            <span className="font-bold block mb-0.5">Cobro por PayPal Inactivo</span>
+                                            La integración de demostración con PayPal está inactiva. Por favor, selecciona la pestaña **Código QR** para confirmar tu orden de prueba.
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

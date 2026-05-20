@@ -46,6 +46,15 @@ class CartViewSet(ViewSet):
         """Obtener carrito por session_id. Crea uno vacío si no existe."""
         lang = request.query_params.get('lang', None)
         cart, _created = Cart.objects.get_or_create(session_id=pk)
+        
+        # Optimize with prefetching
+        cart = Cart.objects.prefetch_related(
+            'items__product__images',
+            'items__product__translations',
+            'items__selected_options__option__translations',
+            'items__selected_options__value__translations'
+        ).get(id=cart.id)
+        
         serializer = CartSerializer(cart, context={'request': request, 'lang': lang})
         return Response(serializer.data)
 
@@ -101,7 +110,15 @@ class CartViewSet(ViewSet):
             except (Option.DoesNotExist, OptionValue.DoesNotExist):
                 pass
 
-        cart_serializer = CartSerializer(cart, context={'request': request})
+        # Reload with prefetches for optimized serialization
+        optimized_cart = Cart.objects.prefetch_related(
+            'items__product__images',
+            'items__product__translations',
+            'items__selected_options__option__translations',
+            'items__selected_options__value__translations'
+        ).get(id=cart.id)
+
+        cart_serializer = CartSerializer(optimized_cart, context={'request': request})
         return Response({
             'message': 'Producto agregado al carrito',
             'cart': cart_serializer.data
@@ -115,7 +132,15 @@ class CartViewSet(ViewSet):
             cart_item = CartItem.objects.get(id=item_id, cart=cart)
             cart_item.delete()
             
-            cart_serializer = CartSerializer(cart, context={'request': request})
+            # Reload with prefetches for optimized serialization
+            optimized_cart = Cart.objects.prefetch_related(
+                'items__product__images',
+                'items__product__translations',
+                'items__selected_options__option__translations',
+                'items__selected_options__value__translations'
+            ).get(id=cart.id)
+            
+            cart_serializer = CartSerializer(optimized_cart, context={'request': request})
             return Response({
                 'message': 'Item eliminado',
                 'cart': cart_serializer.data
@@ -147,7 +172,15 @@ class CartViewSet(ViewSet):
             cart_item.quantity = quantity
             cart_item.save()
             
-            cart_serializer = CartSerializer(cart, context={'request': request})
+            # Reload with prefetches for optimized serialization
+            optimized_cart = Cart.objects.prefetch_related(
+                'items__product__images',
+                'items__product__translations',
+                'items__selected_options__option__translations',
+                'items__selected_options__value__translations'
+            ).get(id=cart.id)
+            
+            cart_serializer = CartSerializer(optimized_cart, context={'request': request})
             return Response({
                 'message': 'Cantidad actualizada',
                 'cart': cart_serializer.data
@@ -162,7 +195,15 @@ class CartViewSet(ViewSet):
             cart = Cart.objects.get(session_id=pk)
             cart.items.all().delete()
             
-            cart_serializer = CartSerializer(cart, context={'request': request})
+            # Reload with prefetches for optimized serialization
+            optimized_cart = Cart.objects.prefetch_related(
+                'items__product__images',
+                'items__product__translations',
+                'items__selected_options__option__translations',
+                'items__selected_options__value__translations'
+            ).get(id=cart.id)
+            
+            cart_serializer = CartSerializer(optimized_cart, context={'request': request})
             return Response({
                 'message': 'Carrito vaciado',
                 'cart': cart_serializer.data

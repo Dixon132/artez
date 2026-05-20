@@ -1,5 +1,8 @@
 "use client";
 
+import Image from "next/image";
+import { getAbsoluteMediaUrl } from "@/services/api";
+
 export default function OrderSummary({ cart, customerData }: { cart: any; customerData: any }) {
     const subtotal = cart.items.reduce((acc: number, item: any) => {
         const itemPrice = Number(item.product_price) + item.selected_options.reduce((sum: number, opt: any) => sum + Number(opt.extra_price), 0);
@@ -47,10 +50,12 @@ export default function OrderSummary({ cart, customerData }: { cart: any; custom
                             <div key={item.id} className="order-item">
                                 <div className="item-image">
                                     {item.product_image ? (
-                                        <img
-                                            src={item.product_image.startsWith("http") ? item.product_image : `http://127.0.0.1:8000${item.product_image}`}
+                                        <Image
+                                            src={getAbsoluteMediaUrl(item.product_image)}
                                             alt={item.product_name || "Product image"}
-                                            loading="lazy"
+                                            fill
+                                            sizes="80px"
+                                            className="object-cover"
                                         />
                                     ) : (
                                         <div className="item-placeholder">
@@ -210,6 +215,7 @@ export default function OrderSummary({ cart, customerData }: { cart: any; custom
                 }
 
                 .item-image {
+                    position: relative;
                     width: 80px;
                     height: 80px;
                     border-radius: 8px;

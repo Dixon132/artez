@@ -4,7 +4,7 @@ import { getAlternateLinks, getBaseUrl } from "@/lib/seo";
 import ProductJsonLd from "@/components/seo/ProductJsonLd";
 import ProductDetailClient from "./ProductDetailClient";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
 function truncate(text: string, maxLength: number): string {
     if (!text) return "";

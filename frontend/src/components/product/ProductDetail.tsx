@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-
-const API_URL = "http://127.0.0.1:8000";
+import { getAbsoluteMediaUrl } from "@/services/api";
 
 export default function ProductDetail({ product }: { product: any }) {
     const [selectedOptions, setSelectedOptions] = useState<any>({});
@@ -18,7 +17,7 @@ export default function ProductDetail({ product }: { product: any }) {
         );
 
     const images = product.images ?? [];
-    const mainImage = images[activeImage]?.image ? `${API_URL}${images[activeImage].image}` : null;
+    const mainImage = images[activeImage]?.image ? getAbsoluteMediaUrl(images[activeImage].image) : null;
 
     return (
         <main className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-stone-50">
@@ -65,7 +64,7 @@ export default function ProductDetail({ product }: { product: any }) {
                                         }`}
                                     >
                                         <Image
-                                            src={`${API_URL}${img.image}`}
+                                            src={getAbsoluteMediaUrl(img.image)}
                                             alt={`${product.name} thumbnail ${i + 1}`}
                                             width={200}
                                             height={200}

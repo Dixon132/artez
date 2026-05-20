@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { optionsApi, optionValuesApi } from "@/services/api";
+import { optionsApi, optionValuesApi, getAbsoluteMediaUrl } from "@/services/api";
 
 export default function AdminOptionsPage() {
     const [options, setOptions] = useState<any[]>([]);
@@ -151,7 +151,7 @@ export default function AdminOptionsPage() {
                                 {option.values.map((value: any) => (
                                     <div key={value.id} className="border border-stone-200 rounded-lg p-3 flex items-center gap-3">
                                         {value.image && (
-                                            <img src={`http://127.0.0.1:8000${value.image}`} alt={value.name} className="w-12 h-12 rounded object-cover" />
+                                            <img src={getAbsoluteMediaUrl(value.image)} alt={value.name} className="w-12 h-12 rounded object-cover" />
                                         )}
                                         <div className="flex-1">
                                             <div className="font-medium text-stone-900 text-sm">{value.name}</div>

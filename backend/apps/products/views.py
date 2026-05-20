@@ -47,7 +47,12 @@ class ProductViewSet(ModelViewSet):
     DELETE /api/products/{id}/delete-image/{image_id}/
     - Eliminar imagen de producto
     """
-    queryset = Product.objects.all()
+    queryset = Product.objects.select_related('category').prefetch_related(
+        'images',
+        'translations',
+        'product_options__option__values__translations',
+        'product_options__option__translations'
+    )
 
     def get_serializer_class(self):
         """Usa serializer simple para crear/editar, completo para leer"""
@@ -108,7 +113,7 @@ class OptionViewSet(ModelViewSet):
     DELETE /api/options/{id}/
     - Eliminar opción (admin)
     """
-    queryset = Option.objects.all()
+    queryset = Option.objects.prefetch_related('values__translations', 'translations')
     
     def get_serializer_class(self):
         if self.action in ('create', 'update', 'partial_update'):
@@ -139,7 +144,7 @@ class OptionValueViewSet(ModelViewSet):
     DELETE /api/option-values/{id}/
     - Eliminar valor de opción (admin)
     """
-    queryset = OptionValue.objects.all()
+    queryset = OptionValue.objects.select_related('option').prefetch_related('translations')
     serializer_class = OptionValueAdminSerializer
 
 
@@ -185,5 +190,5 @@ class CategoryViewSet(ModelViewSet):
     DELETE /api/categories/{id}/
     - Eliminar categoría (admin)
     """
-    queryset = Category.objects.all()
+    queryset = Category.objects.prefetch_related('translations')
     serializer_class = CategorySerializer

@@ -39,9 +39,11 @@ function getLocalizedPath(
     return localizedPath;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
+
 async function fetchProducts(): Promise<ApiProduct[]> {
     try {
-        const response = await fetch("http://127.0.0.1:8000/api/products/", {
+        const response = await fetch(`${API_URL}/products/`, {
             next: { revalidate: 3600 },
         });
 

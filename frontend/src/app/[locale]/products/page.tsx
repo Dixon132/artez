@@ -4,7 +4,7 @@ import { getAlternateLinks, getCommonMetadata, getBaseUrl } from "@/lib/seo";
 import { localeToBcp47, type Locale } from "@/lib/i18n";
 import ProductsListClient from "./ProductsListClient";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
 async function fetchProductCount(locale: string): Promise<number> {
     try {

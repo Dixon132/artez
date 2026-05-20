@@ -1,9 +1,9 @@
+import Image from "next/image";
 import { Link } from "@/lib/navigation";
-
-const API_URL = "http://127.0.0.1:8000";
+import { getAbsoluteMediaUrl } from "@/services/api";
 
 export default function ProductCard({ product, locale }: { product: any; locale: string }) {
-    const imageUrl = product.images?.[0]?.image ? `${API_URL}${product.images[0].image}` : null;
+    const imageUrl = product.images?.[0]?.image ? getAbsoluteMediaUrl(product.images[0].image) : null;
 
     return (
         <Link
@@ -12,9 +12,11 @@ export default function ProductCard({ product, locale }: { product: any; locale:
         >
             <div className="relative overflow-hidden aspect-[3/4] bg-gradient-to-br from-stone-100 to-stone-200">
                 {imageUrl ? (
-                    <img
+                    <Image
                         src={imageUrl}
                         alt={product.name || "Product image"}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
