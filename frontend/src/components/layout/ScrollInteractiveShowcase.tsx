@@ -167,7 +167,8 @@ export default function ScrollInteractiveShowcase({
                                 src={imageSrc}
                                 alt={imageAlt}
                                 fill
-                                sizes="(max-w-768px) 100vw, 400px"
+                                sizes="(max-width: 768px) 100vw, 400px"
+                                loading="lazy"
                                 className="object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.45)] transform group-hover:scale-105 transition-transform duration-500"
                             />
                         </div>

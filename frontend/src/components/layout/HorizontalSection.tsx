@@ -66,9 +66,10 @@ export default function HorizontalSection() {
                     <div className="relative w-1/3 aspect-square mi-imagen drop-shadow-2xl">
                         <Image
                             src="/img/art/art1.png"
-                            alt="Decoración"
+                            alt="Artisan wood carving decoration for handcrafted instruments"
                             fill
                             sizes="33vw"
+                            loading="lazy"
                             className="object-contain"
                         />
                     </div>

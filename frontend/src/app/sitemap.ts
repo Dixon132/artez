@@ -9,6 +9,30 @@ interface ApiProduct {
     updated_at?: string;
 }
 
+interface SitemapPageConfig {
+    priority: number;
+    changeFrequency: "daily" | "weekly" | "monthly" | "yearly" | "always" | "hourly" | "never";
+}
+
+/**
+ * Priority and changeFrequency configuration per page type.
+ * Home: highest priority, weekly updates
+ * Products List: high priority, daily updates (new products)
+ * Product Detail: medium-high priority, daily updates (price/stock changes)
+ * About/Contact: lower priority, monthly updates (static content)
+ */
+const PAGE_CONFIG: Record<string, SitemapPageConfig> = {
+    "/": { priority: 1.0, changeFrequency: "weekly" },
+    "/products": { priority: 0.8, changeFrequency: "daily" },
+    "/products/[id]": { priority: 0.7, changeFrequency: "daily" },
+    "/about": { priority: 0.6, changeFrequency: "monthly" },
+    "/contact": { priority: 0.6, changeFrequency: "monthly" },
+};
+
+/**
+ * Static pages to include in the sitemap.
+ * Cart and Checkout are excluded as they are non-indexable pages.
+ */
 const STATIC_PAGES: Array<keyof typeof routing.pathnames> = [
     "/",
     "/products",
@@ -76,7 +100,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const products = await fetchProducts();
     const entries: MetadataRoute.Sitemap = [];
 
+    // Generate entries for static pages (Home, Products List, About, Contact)
+    // Cart and Checkout are excluded (non-indexable)
     for (const pathnameKey of STATIC_PAGES) {
+        const config = PAGE_CONFIG[pathnameKey];
+
         for (const locale of locales) {
             const localizedPath = getLocalizedPath(pathnameKey, locale);
             const url = `${baseUrl}/${locale}${localizedPath === "/" ? "" : localizedPath}`;
@@ -84,16 +112,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             entries.push({
                 url,
                 lastModified: new Date(),
+                changeFrequency: config?.changeFrequency ?? "monthly",
+                priority: config?.priority ?? 0.5,
                 alternates: buildAlternates(pathnameKey),
             });
         }
     }
 
+    // Generate entries for all product detail pages
     for (const product of products) {
         const params = { id: String(product.id) };
         const lastModified = product.updated_at
             ? new Date(product.updated_at)
             : new Date();
+        const config = PAGE_CONFIG["/products/[id]"];
 
         for (const locale of locales) {
             const localizedPath = getLocalizedPath("/products/[id]", locale, params);
@@ -102,6 +134,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             entries.push({
                 url,
                 lastModified,
+                changeFrequency: config?.changeFrequency ?? "daily",
+                priority: config?.priority ?? 0.7,
                 alternates: buildAlternates("/products/[id]", params),
             });
         }

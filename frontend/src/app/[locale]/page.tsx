@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { getAlternateLinks, getCommonMetadata, getBaseUrl } from "@/lib/seo";
+import {
+    getAlternateLinks,
+    getCommonMetadata,
+    getDefaultOgImage,
+} from "@/lib/seo";
 import { localeToBcp47, type Locale } from "@/lib/i18n";
+import OrganizationJsonLd from "@/components/seo/OrganizationJsonLd";
+import WebSiteJsonLd from "@/components/seo/WebSiteJsonLd";
 import HomeClient from "./HomeClient";
 
 interface PageProps {
@@ -17,8 +23,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     const alternateLinks = getAlternateLinks("/", locale);
     const commonMetadata = getCommonMetadata(locale);
-    const baseUrl = getBaseUrl();
     const currentBcp47 = localeToBcp47[locale as Locale];
+    const ogImage = getDefaultOgImage();
 
     return {
         title,
@@ -30,15 +36,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         openGraph: {
             title,
             description,
-            images: [{ url: `${baseUrl}/img/charango.png` }],
+            images: [
+                {
+                    url: ogImage.url,
+                    width: ogImage.width,
+                    height: ogImage.height,
+                    alt: ogImage.alt,
+                },
+            ],
             url: alternateLinks.canonical,
             type: "website",
             locale: currentBcp47,
             alternateLocale: commonMetadata.openGraph?.alternateLocale,
+            siteName: "Artesena",
+        },
+        twitter: {
+            card: "summary_large_image",
+            title,
+            description,
+            images: [ogImage.url],
         },
     };
 }
 
-export default function HomePage() {
-    return <HomeClient />;
+export default async function HomePage({ params }: PageProps) {
+    const { locale } = await params;
+
+    return (
+        <>
+            <OrganizationJsonLd />
+            <WebSiteJsonLd locale={locale} />
+            <HomeClient />
+        </>
+    );
 }

@@ -39,7 +39,9 @@ export default function Navbar({ locale }: { locale: string }) {
     const textHoverClass = isHome ? "text-white/80 hover:text-amber-400" : "text-stone-700 hover:text-amber-600";
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-10 py-5 transition-all duration-300 ${navClass}`}
+        <nav
+            aria-label="Main navigation"
+            className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-10 py-5 transition-all duration-300 ${navClass}`}
             style={{ fontFamily: "'Cormorant Garamond', serif" }}
         >
             {/* Logo */}

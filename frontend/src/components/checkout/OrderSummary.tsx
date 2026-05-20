@@ -55,6 +55,7 @@ export default function OrderSummary({ cart, customerData }: { cart: any; custom
                                             alt={item.product_name || "Product image"}
                                             fill
                                             sizes="80px"
+                                            loading="lazy"
                                             className="object-cover"
                                         />
                                     ) : (

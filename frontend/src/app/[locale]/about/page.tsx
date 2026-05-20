@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { getAlternateLinks, getCommonMetadata } from "@/lib/seo";
+import { getAlternateLinks, getCommonMetadata, getDefaultOgImage } from "@/lib/seo";
 import { localeToBcp47, type Locale } from "@/lib/i18n";
 import AboutSection from "@/components/sections/AboutSection";
 
@@ -18,6 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const alternateLinks = getAlternateLinks("/about", locale);
     const commonMetadata = getCommonMetadata(locale);
     const currentBcp47 = localeToBcp47[locale as Locale];
+    const ogImage = getDefaultOgImage();
 
     return {
         title,
@@ -32,7 +33,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             url: alternateLinks.canonical,
             type: "website",
             locale: currentBcp47,
-            ...commonMetadata.openGraph,
+            alternateLocale: commonMetadata.openGraph?.alternateLocale,
+            siteName: "Artesena",
+            images: [
+                {
+                    url: ogImage.url,
+                    width: ogImage.width,
+                    height: ogImage.height,
+                    alt: ogImage.alt,
+                },
+            ],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title,
+            description,
+            images: [ogImage.url],
         },
     };
 }

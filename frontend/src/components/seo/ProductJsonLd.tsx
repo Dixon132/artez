@@ -9,19 +9,23 @@ interface ProductJsonLdProps {
     description: string;
     base_price: number | string;
     images?: ProductImage[];
+    sku?: string;
+    category?: string;
 }
 
 /**
  * Server component that renders JSON-LD structured data for a product.
  * Outputs a <script type="application/ld+json"> tag with Schema.org Product markup.
  *
- * Validates: Requirements 10.1, 10.2, 10.3, 10.4, 10.5, 10.6
+ * Validates: Requirements 4.1, 4.6
  */
 export default function ProductJsonLd({
     name,
     description,
     base_price,
     images,
+    sku,
+    category,
 }: ProductJsonLdProps) {
     const baseUrl = getBaseUrl();
 
@@ -47,6 +51,16 @@ export default function ProductJsonLd({
         jsonLd.image = images.map((img) =>
             img.image.startsWith("http") ? img.image : `${baseUrl}${img.image}`
         );
+    }
+
+    // Include SKU when available
+    if (sku) {
+        jsonLd.sku = sku;
+    }
+
+    // Include category when available
+    if (category) {
+        jsonLd.category = category;
     }
 
     return (

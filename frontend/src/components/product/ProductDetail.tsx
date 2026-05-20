@@ -36,6 +36,7 @@ export default function ProductDetail({ product }: { product: any }) {
                                     alt={product.name || "Product image"}
                                     width={800}
                                     height={800}
+                                    priority
                                     className={`w-full h-full object-cover transition-transform duration-500 ${isZoomed ? "scale-150" : "scale-100"}`}
                                 />
                             ) : (

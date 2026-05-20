@@ -151,7 +151,7 @@ export default function AdminOptionsPage() {
                                 {option.values.map((value: any) => (
                                     <div key={value.id} className="border border-stone-200 rounded-lg p-3 flex items-center gap-3">
                                         {value.image && (
-                                            <img src={getAbsoluteMediaUrl(value.image)} alt={value.name} className="w-12 h-12 rounded object-cover" />
+                                            <img src={getAbsoluteMediaUrl(value.image)} alt={value.name} loading="lazy" className="w-12 h-12 rounded object-cover" />
                                         )}
                                         <div className="flex-1">
                                             <div className="font-medium text-stone-900 text-sm">{value.name}</div>

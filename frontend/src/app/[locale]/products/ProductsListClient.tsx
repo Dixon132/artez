@@ -172,6 +172,7 @@ export default function ProductsListClient() {
                                                 src={getAbsoluteMediaUrl(product.images[0].image)}
                                                 alt={product.name || "Handcrafted instrument"}
                                                 priority={idx < 3}
+                                                loading={idx < 3 ? undefined : "lazy"}
                                                 fill
                                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                 className="card-img object-cover"
@@ -212,9 +213,9 @@ export default function ProductsListClient() {
 
                                     {/* Card body */}
                                     <div className="p-6 md:p-7 bg-white">
-                                        <h3 className="text-stone-950 font-serif text-2xl lg:text-3xl font-medium tracking-tight mb-2.5 leading-snug group-hover:text-amber-800 transition-colors duration-300">
+                                        <h2 className="text-stone-950 font-serif text-2xl lg:text-3xl font-medium tracking-tight mb-2.5 leading-snug group-hover:text-amber-800 transition-colors duration-300">
                                             {product.name}
-                                        </h3>
+                                        </h2>
 
                                         <p className="text-stone-500 font-sans text-[13px] font-light leading-relaxed line-clamp-2 mb-6">
                                             {product.description}

@@ -210,7 +210,7 @@ export default function ProductDetailClient() {
                         <div className="absolute inset-0 select-none pointer-events-none scale-105 opacity-25 blur-3xl transition-transform duration-700">
                             <Image
                                 src={getAbsoluteMediaUrl(images[0].image)}
-                                alt="Blurred instrument background"
+                                alt=""
                                 fill
                                 sizes="100vw"
                                 className="object-cover"
@@ -295,8 +295,9 @@ export default function ProductDetailClient() {
                                     <div key={i} className="flex-shrink-0 w-full h-full rounded-[2.5rem] overflow-hidden relative">
                                         <Image
                                             src={getAbsoluteMediaUrl(img.image)}
-                                            alt={`${product.name} ${i + 1}`}
+                                            alt={`${product.name} - image ${i + 1}`}
                                             priority={i === 0}
+                                            loading={i === 0 ? undefined : "lazy"}
                                             fill
                                             sizes="(max-width: 1024px) 100vw, 50vw"
                                             className="object-cover"
@@ -412,7 +413,10 @@ export default function ProductDetailClient() {
                                                             {hasImage && (
                                                                 <img
                                                                     src={val.image.startsWith("http") ? val.image : `http://127.0.0.1:8000${val.image}`}
-                                                                    alt={val.name}
+                                                                    alt={`${opt.name}: ${val.name}`}
+                                                                    width={48}
+                                                                    height={48}
+                                                                    loading="lazy"
                                                                     className="w-12 h-12 object-cover rounded-l-[10px]"
                                                                 />
                                                             )}
@@ -441,6 +445,7 @@ export default function ProductDetailClient() {
                                 <button
                                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
                                     disabled={quantity <= 1}
+                                    aria-label={t("quantity") + " -"}
                                     className="w-11 h-11 flex items-center justify-center text-stone-500 hover:bg-amber-50 hover:text-amber-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14" /></svg>
@@ -450,6 +455,7 @@ export default function ProductDetailClient() {
                                 </span>
                                 <button
                                     onClick={() => setQuantity(q => q + 1)}
+                                    aria-label={t("quantity") + " +"}
                                     className="w-11 h-11 flex items-center justify-center text-stone-500 hover:bg-amber-50 hover:text-amber-700 transition-colors"
                                 >
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>

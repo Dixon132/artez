@@ -76,7 +76,7 @@ export default function HomeClient() {
 
                     <div className="absolute inset-0 z-10 w-screen flex items-center justify-center px-10 md:px-20 pointer-events-none">
                         <div className="font-aldrich   flex flex-col items-center text-center">
-                            <div className="flex font-cormorant gap-0 md:gap-1" style={{ perspective: "600px" }}>
+                            <h1 className="flex font-cormorant gap-0 md:gap-1" style={{ perspective: "600px" }}>
                                 {titleLetters.map((l, i) => (
                                     <span
                                         key={i}
@@ -88,7 +88,7 @@ export default function HomeClient() {
                                         {l}
                                     </span>
                                 ))}
-                            </div>
+                            </h1>
                             <p className="hero-sub mt-3  text-xl md:text-3xl font-semibold italic">
                                 El Alma Andina en tus Manos
                             </p>

@@ -118,7 +118,7 @@ export default function AdminProductsPage() {
                     <div key={product.id} className="bg-white rounded-xl border border-stone-200 overflow-hidden hover:shadow-lg transition-shadow">
                         <div className="aspect-square bg-stone-100 relative">
                             {product.images?.[0] ? (
-                                <img src={product.images[0].image} alt={product.name} className="w-full h-full object-cover" />
+                                <img src={product.images[0].image} alt={product.name} loading="lazy" className="w-full h-full object-cover" />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-stone-300">
                                     <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -261,7 +261,7 @@ export default function AdminProductsPage() {
                         <div className="grid grid-cols-2 gap-4">
                             {selectedProduct.images?.map((img: any) => (
                                 <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-stone-200 group">
-                                    <img src={img.image} alt="" className="w-full h-full object-cover" />
+                                    <img src={img.image} alt={`${selectedProduct.name} image`} loading="lazy" className="w-full h-full object-cover" />
                                     <button
                                         onClick={() => handleDeleteImage(img.id)}
                                         className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
