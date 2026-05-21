@@ -220,7 +220,7 @@ export default function ProductDetailClient() {
                     )}
                     
                     {/* Dark gradient & lighting overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-stone-950/60 via-[#16100c]/80 to-[#faf9f6] pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-stone-950/80 via-[#16100c]/95 to-[#16100c] pointer-events-none" />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(217,119,6,0.15)_0%,transparent_60%)] pointer-events-none" />
                     
                     {/* Luxury string lines schema */}

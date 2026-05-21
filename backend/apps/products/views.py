@@ -60,7 +60,7 @@ class ProductViewSet(ModelViewSet):
             return ProductAdminSerializer
         return ProductSerializer
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], url_path='upload-image')
     def upload_image(self, request, pk=None):
         """Subir imagen a producto"""
         product = self.get_object()

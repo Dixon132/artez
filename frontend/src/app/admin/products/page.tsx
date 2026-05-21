@@ -1,17 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { productsApi, categoriesApi } from "@/services/api";
+import { productsApi, categoriesApi, optionsApi } from "@/services/api";
 
 export default function AdminProductsPage() {
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
+    const [options, setOptions] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<any>(null);
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
-    const [form, setForm] = useState({ name: "", description: "", base_price: "", category: "" });
+    const [form, setForm] = useState<{ name: string; description: string; base_price: string; category: string; options: number[] }>({
+        name: "",
+        description: "",
+        base_price: "",
+        category: "",
+        options: []
+    });
 
     useEffect(() => {
         loadData();
@@ -19,9 +26,14 @@ export default function AdminProductsPage() {
 
     const loadData = async () => {
         setLoading(true);
-        const [prods, cats] = await Promise.all([productsApi.list(), categoriesApi.list()]);
+        const [prods, cats, opts] = await Promise.all([
+            productsApi.list(),
+            categoriesApi.list(),
+            optionsApi.list()
+        ]);
         setProducts(prods);
         setCategories(cats);
+        setOptions(opts);
         setLoading(false);
     };
 
@@ -36,7 +48,7 @@ export default function AdminProductsPage() {
             }
             await loadData();
             setModalOpen(false);
-            setForm({ name: "", description: "", base_price: "", category: "" });
+            setForm({ name: "", description: "", base_price: "", category: "", options: [] });
             setEditingProduct(null);
         } finally {
             setLoading(false);
@@ -57,6 +69,7 @@ export default function AdminProductsPage() {
             description: product.description,
             base_price: product.base_price,
             category: product.category,
+            options: product.product_options?.map((po: any) => po.option.id) || [],
         });
         setModalOpen(true);
     };
@@ -102,7 +115,7 @@ export default function AdminProductsPage() {
                 <button
                     onClick={() => {
                         setEditingProduct(null);
-                        setForm({ name: "", description: "", base_price: "", category: "" });
+                        setForm({ name: "", description: "", base_price: "", category: "", options: [] });
                         setModalOpen(true);
                     }}
                     className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors"
@@ -138,6 +151,15 @@ export default function AdminProductsPage() {
                         <div className="p-4">
                             <h3 className="font-semibold text-stone-900 mb-1">{product.name}</h3>
                             <p className="text-sm text-stone-500 mb-2 line-clamp-2">{product.description}</p>
+                            {product.product_options && product.product_options.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mb-3">
+                                    {product.product_options.map((po: any) => (
+                                        <span key={po.option.id} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-600 border border-stone-200">
+                                            {po.option.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-lg font-bold text-amber-600">${product.base_price}</span>
                                 <span className="text-xs text-stone-400">{product.category_name}</span>
@@ -213,6 +235,51 @@ export default function AdminProductsPage() {
                                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                                     ))}
                                 </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-stone-700 mb-2">Opciones del Producto</label>
+                                {options.length === 0 ? (
+                                    <p className="text-xs text-stone-400 bg-stone-50 p-3 rounded-lg border border-dashed border-stone-200">
+                                        No hay opciones globales configuradas. Puedes crearlas en la sección de "Opciones".
+                                    </p>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1 border border-stone-200 rounded-lg">
+                                        {options.map((opt) => {
+                                            const isSelected = form.options.includes(opt.id);
+                                            return (
+                                                <button
+                                                    key={opt.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newOptions = isSelected
+                                                            ? form.options.filter(id => id !== opt.id)
+                                                            : [...form.options, opt.id];
+                                                        setForm({ ...form, options: newOptions });
+                                                    }}
+                                                    className={`flex items-center justify-between p-2 rounded-lg border text-left transition-all ${
+                                                        isSelected
+                                                            ? "border-amber-500 bg-amber-50/30 ring-1 ring-amber-500"
+                                                            : "border-stone-200 hover:border-stone-300 hover:bg-stone-50"
+                                                    }`}
+                                                >
+                                                    <div className="min-w-0 flex-1 pr-2">
+                                                        <span className="block text-xs font-semibold text-stone-900 truncate">{opt.name}</span>
+                                                        <span className="block text-[10px] text-stone-400">{opt.values?.length || 0} valores</span>
+                                                    </div>
+                                                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${
+                                                        isSelected ? "border-amber-500 bg-amber-500 text-white" : "border-stone-300"
+                                                    }`}>
+                                                        {isSelected && (
+                                                            <svg className="w-2 h-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                             <div className="flex gap-3 pt-4">
                                 <button

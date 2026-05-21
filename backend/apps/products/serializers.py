@@ -141,10 +141,33 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ProductAdminSerializer(serializers.ModelSerializer):
     """Serializer para admin (crear/editar productos)"""
+    options = serializers.PrimaryKeyRelatedField(
+        queryset=Option.objects.all(),
+        many=True,
+        required=False
+    )
     
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description', 'base_price', 'category']
+        fields = ['id', 'name', 'description', 'base_price', 'category', 'options']
+
+    def create(self, validated_data):
+        options = validated_data.pop('options', [])
+        product = Product.objects.create(**validated_data)
+        for option in options:
+            ProductOption.objects.create(product=product, option=option)
+        return product
+
+    def update(self, instance, validated_data):
+        options = validated_data.pop('options', None)
+        instance = super().update(instance, validated_data)
+        if options is not None:
+            # Eliminar las relaciones antiguas
+            ProductOption.objects.filter(product=instance).delete()
+            # Crear las nuevas relaciones
+            for option in options:
+                ProductOption.objects.create(product=instance, option=option)
+        return instance
 
 
 class ProductImageUploadSerializer(serializers.ModelSerializer):
