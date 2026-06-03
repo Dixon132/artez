@@ -121,12 +121,19 @@ export default function ProductDetail({ product }: { product: any }) {
                                                                 [opt.id]: isSelected ? null : val,
                                                             }))
                                                         }
-                                                        className={`px-5 py-3 rounded-xl text-sm font-medium border-2 transition-all ${
+                                                        className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium border-2 transition-all ${
                                                             isSelected
                                                                 ? "bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-200"
                                                                 : "bg-white border-stone-300 text-stone-700 hover:border-amber-400 hover:shadow-md"
                                                         }`}
                                                     >
+                                                        {val.image && (
+                                                            <img
+                                                                src={val.image}
+                                                                alt={val.name}
+                                                                className="w-8 h-8 rounded-md object-cover"
+                                                            />
+                                                        )}
                                                         {val.name}
                                                         {Number(val.base_extra_price) > 0 && (
                                                             <span className="ml-2 opacity-70">+${val.base_extra_price}</span>

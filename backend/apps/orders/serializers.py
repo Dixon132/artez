@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Cart, CartItem, CartItemOption, Order, OrderItem, OrderItemOption
+from .models import Cart, CartItem, CartItemOption, Order, OrderItem, OrderItemOption, ShippingZone, Coupon
 from apps.products.models import (
     Product, Option, OptionValue,
     ProductTranslation, OptionTranslation, OptionValueTranslation,
@@ -125,6 +125,16 @@ class AddToCartSerializer(serializers.Serializer):
 # 📦 ORDER SERIALIZERS
 # ==============================
 
+class ShippingZoneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShippingZone
+        fields = '__all__'
+
+class CouponSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coupon
+        fields = '__all__'
+
 class OrderItemOptionSerializer(serializers.ModelSerializer):
     """Serializer de opciones de item de orden (snapshot)"""
     
@@ -149,7 +159,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'email', 'full_name', 'address', 'total_price', 'status', 'status_display', 'created_at', 'items']
+        fields = ['id', 'email', 'full_name', 'address', 'total_price', 'shipping_zone', 'shipping_cost', 'coupon', 'discount_applied', 'status', 'status_display', 'created_at', 'items']
 
 
 class CreateOrderSerializer(serializers.Serializer):
@@ -169,6 +179,8 @@ class CreateOrderSerializer(serializers.Serializer):
     email = serializers.EmailField()
     full_name = serializers.CharField(max_length=255)
     address = serializers.CharField()
+    shipping_zone_id = serializers.IntegerField(required=False, allow_null=True)
+    coupon_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
 class UpdateOrderStatusSerializer(serializers.Serializer):
@@ -182,9 +194,10 @@ class UpdateOrderStatusSerializer(serializers.Serializer):
     }
     """
     status = serializers.ChoiceField(choices=[
-        ('pending', 'Pending'),
-        ('processing', 'Processing'),
-        ('shipped', 'Shipped'),
-        ('delivered', 'Delivered'),
-        ('cancelled', 'Cancelled'),
+        ('incoming', 'Pedido Entrante'),
+        ('pending_payment', 'Pendiente de Pago'),
+        ('in_production', 'En Fabricación'),
+        ('shipped', 'Enviado'),
+        ('delivered', 'Entregado'),
+        ('cancelled', 'Cancelado'),
     ])

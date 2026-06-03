@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { productsApi, categoriesApi } from "@/services/api";
+import Pagination from "@/components/admin/Pagination";
+import SearchBar from "@/components/admin/SearchBar";
+import { Package, Plus, Edit, Trash2, Image as ImageIcon, X, Upload, DollarSign, Tag } from "lucide-react";
+
+const API_URL = 'http://127.0.0.1:8000';
 
 export default function AdminProductsPage() {
     const [products, setProducts] = useState<any[]>([]);
@@ -12,16 +17,29 @@ export default function AdminProductsPage() {
     const [editingProduct, setEditingProduct] = useState<any>(null);
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
     const [form, setForm] = useState({ name: "", description: "", base_price: "", category: "" });
+    const [page, setPage] = useState(1);
+    const [search, setSearch] = useState("");
+    const [totalPages, setTotalPages] = useState(1);
+    const [activeCategory, setActiveCategory] = useState<string>("all");
+    const [dragOver, setDragOver] = useState(false);
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [page, activeCategory]);
 
     const loadData = async () => {
         setLoading(true);
-        const [prods, cats] = await Promise.all([productsApi.list(), categoriesApi.list()]);
+        const [prodsRes, catsRes] = await Promise.all([
+            productsApi.list('en', page, search), 
+            categoriesApi.list('en', 1, '')
+        ]);
+        let prods = prodsRes.results || prodsRes;
+        if (activeCategory !== "all") {
+            prods = prods.filter((p: any) => p.category === parseInt(activeCategory));
+        }
         setProducts(prods);
-        setCategories(cats);
+        if (prodsRes.count) setTotalPages(Math.ceil(prodsRes.count / 10));
+        setCategories(catsRes.results || catsRes);
         setLoading(false);
     };
 
@@ -69,16 +87,34 @@ export default function AdminProductsPage() {
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || !selectedProduct) return;
         const file = e.target.files[0];
+        await uploadImage(file);
+    };
+
+    const uploadImage = async (file: File) => {
+        if (!selectedProduct) return;
         setLoading(true);
         try {
-            await productsApi.uploadImage(selectedProduct.id, file);
-            await loadData();
-            const updated = products.find(p => p.id === selectedProduct.id);
-            setSelectedProduct(updated);
+            const result = await productsApi.uploadImage(selectedProduct.id, file);
+            if (result.error) {
+                alert(`Error: ${result.error}`);
+            } else {
+                await loadData();
+                const updated = products.find(p => p.id === selectedProduct.id);
+                setSelectedProduct(updated);
+            }
         } catch (error) {
             alert('Error al subir imagen');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setDragOver(false);
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            uploadImage(file);
         }
     };
 
@@ -92,11 +128,19 @@ export default function AdminProductsPage() {
         setLoading(false);
     };
 
+    const getImageUrl = (path: string) => {
+        if (path.startsWith('http')) return path;
+        return `${API_URL}${path}`;
+    };
+
     return (
         <div className="p-8">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-stone-900">Productos</h2>
+                    <h2 className="text-2xl font-bold text-stone-900 flex items-center gap-2">
+                        <Package className="w-7 h-7" />
+                        Productos
+                    </h2>
                     <p className="text-sm text-stone-500 mt-1">{products.length} productos</p>
                 </div>
                 <button
@@ -105,9 +149,51 @@ export default function AdminProductsPage() {
                         setForm({ name: "", description: "", base_price: "", category: "" });
                         setModalOpen(true);
                     }}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors"
                 >
-                    + Nuevo Producto
+                    <Plus className="w-5 h-5" />
+                    Nuevo Producto
+                </button>
+            </div>
+
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+                <button
+                    onClick={() => setActiveCategory("all")}
+                    className={`px-4 py-2 rounded-lg border-2 transition-all whitespace-nowrap ${
+                        activeCategory === "all"
+                            ? "bg-amber-500 border-amber-500 text-white shadow-md"
+                            : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
+                    }`}
+                >
+                    Todos
+                </button>
+                {categories.map((cat) => (
+                    <button
+                        key={cat.id}
+                        onClick={() => setActiveCategory(String(cat.id))}
+                        className={`px-4 py-2 rounded-lg border-2 transition-all whitespace-nowrap ${
+                            activeCategory === String(cat.id)
+                                ? "bg-amber-500 border-amber-500 text-white shadow-md"
+                                : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
+                        }`}
+                    >
+                        {cat.name}
+                    </button>
+                ))}
+            </div>
+
+            <div className="flex gap-4 items-center mb-6">
+                <SearchBar 
+                    value={search}
+                    onChange={setSearch}
+                    onSearch={() => { setPage(1); loadData(); }}
+                    placeholder="Buscar producto..."
+                />
+                <button 
+                    onClick={() => { setPage(1); loadData(); }}
+                    className="px-6 py-2 bg-stone-200 hover:bg-stone-300 font-medium rounded-lg transition-colors"
+                >
+                    Buscar
                 </button>
             </div>
 
@@ -115,45 +201,59 @@ export default function AdminProductsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => (
-                    <div key={product.id} className="bg-white rounded-xl border border-stone-200 overflow-hidden hover:shadow-lg transition-shadow">
-                        <div className="aspect-square bg-stone-100 relative">
+                    <div key={product.id} className="bg-white rounded-xl border border-stone-200 overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1">
+                        <div className="aspect-square bg-stone-100 relative group">
                             {product.images?.[0] ? (
-                                <img src={product.images[0].image} alt={product.name} className="w-full h-full object-cover" />
+                                <img 
+                                    src={getImageUrl(product.images[0].image)} 
+                                    alt={product.name} 
+                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-stone-300">
-                                    <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
+                                    <ImageIcon className="w-16 h-16" />
                                 </div>
                             )}
                             <button
                                 onClick={() => openImageModal(product)}
-                                className="absolute top-2 right-2 p-2 bg-white/90 backdrop-blur-sm rounded-lg hover:bg-white transition-colors"
+                                className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-lg hover:bg-white transition-all opacity-0 group-hover:opacity-100 shadow-lg"
                             >
-                                <svg className="w-4 h-4 text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
+                                <ImageIcon className="w-5 h-5 text-stone-700" />
                             </button>
+                            {product.images?.length > 0 && (
+                                <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/70 text-white text-xs rounded-full">
+                                    {product.images.length} {product.images.length === 1 ? 'imagen' : 'imágenes'}
+                                </div>
+                            )}
                         </div>
-                        <div className="p-4">
-                            <h3 className="font-semibold text-stone-900 mb-1">{product.name}</h3>
-                            <p className="text-sm text-stone-500 mb-2 line-clamp-2">{product.description}</p>
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-lg font-bold text-amber-600">${product.base_price}</span>
-                                <span className="text-xs text-stone-400">{product.category_name}</span>
+                        <div className="p-5">
+                            <div className="flex items-start justify-between mb-2">
+                                <h3 className="font-semibold text-stone-900 text-lg">{product.name}</h3>
+                                <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full flex items-center gap-1">
+                                    <Tag className="w-3 h-3" />
+                                    {product.category_name}
+                                </span>
+                            </div>
+                            <p className="text-sm text-stone-500 mb-4 line-clamp-2">{product.description}</p>
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-2xl font-bold text-amber-600 flex items-center gap-1">
+                                    <DollarSign className="w-5 h-5" />
+                                    {product.base_price}
+                                </span>
                             </div>
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => handleEdit(product)}
-                                    className="flex-1 px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium rounded-lg transition-colors"
+                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium rounded-lg transition-colors"
                                 >
+                                    <Edit className="w-4 h-4" />
                                     Editar
                                 </button>
                                 <button
                                     onClick={() => handleDelete(product.id)}
-                                    className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-lg transition-colors"
+                                    className="flex items-center justify-center gap-2 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-lg transition-colors"
                                 >
-                                    Eliminar
+                                    <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
@@ -161,13 +261,26 @@ export default function AdminProductsPage() {
                 ))}
             </div>
 
-            {/* Modal Crear/Editar */}
+            {products.length === 0 && !loading && (
+                <div className="text-center py-16">
+                    <Package className="w-16 h-16 text-stone-300 mx-auto mb-4" />
+                    <p className="text-stone-500">No hay productos</p>
+                </div>
+            )}
+
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+
             {modalOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
-                        <h3 className="text-xl font-bold text-stone-900 mb-4">
-                            {editingProduct ? "Editar Producto" : "Nuevo Producto"}
-                        </h3>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-bold text-stone-900">
+                                {editingProduct ? "Editar Producto" : "Nuevo Producto"}
+                            </h3>
+                            <button onClick={() => setModalOpen(false)} className="text-stone-400 hover:text-stone-600">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-stone-700 mb-1">Nombre</label>
@@ -191,14 +304,17 @@ export default function AdminProductsPage() {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-stone-700 mb-1">Precio Base</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={form.base_price}
-                                    onChange={(e) => setForm({ ...form, base_price: e.target.value })}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900"
-                                    required
-                                />
+                                <div className="relative">
+                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={form.base_price}
+                                        onChange={(e) => setForm({ ...form, base_price: e.target.value })}
+                                        className="w-full pl-10 pr-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900"
+                                        required
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-stone-700 mb-1">Categoría</label>
@@ -235,44 +351,63 @@ export default function AdminProductsPage() {
                 </div>
             )}
 
-            {/* Modal Imágenes */}
             {imageModalOpen && selectedProduct && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-stone-900">Imágenes de {selectedProduct.name}</h3>
+                    <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold text-stone-900 flex items-center gap-2">
+                                <ImageIcon className="w-6 h-6" />
+                                Imágenes de {selectedProduct.name}
+                            </h3>
                             <button onClick={() => setImageModalOpen(false)} className="text-stone-400 hover:text-stone-600">
-                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <X className="w-6 h-6" />
                             </button>
                         </div>
 
-                        <div className="mb-4">
-                            <label className="block w-full px-4 py-8 border-2 border-dashed border-stone-300 rounded-lg text-center cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-colors">
-                                <svg className="w-12 h-12 mx-auto mb-2 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                                <span className="text-sm text-stone-600">Click para subir imagen</span>
+                        <div
+                            className={`mb-6 border-2 border-dashed rounded-xl transition-all ${
+                                dragOver ? "border-amber-500 bg-amber-50" : "border-stone-300"
+                            }`}
+                            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                            onDragLeave={() => setDragOver(false)}
+                            onDrop={handleDrop}
+                        >
+                            <label className="block w-full px-4 py-12 text-center cursor-pointer">
+                                <Upload className={`w-16 h-16 mx-auto mb-3 ${dragOver ? "text-amber-500" : "text-stone-400"}`} />
+                                <p className="text-lg font-medium text-stone-700 mb-1">
+                                    {dragOver ? "Suelta la imagen aquí" : "Arrastra una imagen o haz clic"}
+                                </p>
+                                <p className="text-sm text-stone-500">PNG, JPG hasta 10MB</p>
                                 <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                             </label>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            {selectedProduct.images?.map((img: any) => (
-                                <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-stone-200 group">
-                                    <img src={img.image} alt="" className="w-full h-full object-cover" />
-                                    <button
-                                        onClick={() => handleDeleteImage(img.id)}
-                                        className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
+                        {selectedProduct.images?.length > 0 ? (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {selectedProduct.images.map((img: any) => (
+                                    <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-stone-200 group hover:border-amber-400 transition-all">
+                                        <img 
+                                            src={getImageUrl(img.image)} 
+                                            alt="" 
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
+                                            <button
+                                                onClick={() => handleDeleteImage(img.id)}
+                                                className="p-3 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 shadow-lg"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 text-stone-400">
+                                <ImageIcon className="w-16 h-16 mx-auto mb-3" />
+                                <p>No hay imágenes aún</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

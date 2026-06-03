@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { ordersApi } from "@/services/api";
+import Pagination from "@/components/admin/Pagination";
+import SearchBar from "@/components/admin/SearchBar";
 
 export default function AdminCustomersPage() {
     const [orders, setOrders] = useState<any[]>([]);
@@ -9,15 +11,22 @@ export default function AdminCustomersPage() {
     const [loading, setLoading] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
     const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [page]);
 
     const loadData = async () => {
         setLoading(true);
-        const ordersData = await ordersApi.list();
+        const response = await ordersApi.list(page, search);
+        const ordersData = response.results || response;
         setOrders(ordersData);
+        if (response.count) {
+            setTotalPages(Math.ceil(response.count / 10));
+        }
 
         // Agrupar órdenes por cliente
         const customersMap = new Map();
@@ -52,6 +61,21 @@ export default function AdminCustomersPage() {
                     <h2 className="text-2xl font-bold text-stone-900">Clientes</h2>
                     <p className="text-sm text-stone-500 mt-1">{customers.length} clientes únicos</p>
                 </div>
+            </div>
+
+            <div className="flex gap-4 items-center mb-6">
+                <SearchBar 
+                    value={search}
+                    onChange={setSearch}
+                    onSearch={() => { setPage(1); loadData(); }}
+                    placeholder="Buscar cliente..."
+                />
+                <button 
+                    onClick={() => { setPage(1); loadData(); }}
+                    className="px-6 py-2 bg-stone-200 hover:bg-stone-300 font-medium rounded-lg transition-colors"
+                >
+                    Buscar
+                </button>
             </div>
 
             {loading && <div className="text-center py-8 text-stone-500">Cargando...</div>}
@@ -102,6 +126,8 @@ export default function AdminCustomersPage() {
                     </tbody>
                 </table>
             </div>
+
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
 
             {/* Modal Detalle */}
             {detailModalOpen && selectedCustomer && (

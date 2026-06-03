@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { optionsApi, optionValuesApi } from "@/services/api";
+import Pagination from "@/components/admin/Pagination";
+import SearchBar from "@/components/admin/SearchBar";
 
 export default function AdminOptionsPage() {
     const [options, setOptions] = useState<any[]>([]);
@@ -12,15 +14,21 @@ export default function AdminOptionsPage() {
     const [selectedOption, setSelectedOption] = useState<any>(null);
     const [form, setForm] = useState({ name: "" });
     const [valueForm, setValueForm] = useState({ option: "", name: "", base_extra_price: "", image: null as File | null });
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [page]);
 
     const loadData = async () => {
         setLoading(true);
-        const data = await optionsApi.list();
-        setOptions(data);
+        const response = await optionsApi.list('en', page, search);
+        setOptions(response.results || response);
+        if (response.count) {
+            setTotalPages(Math.ceil(response.count / 10));
+        }
         setLoading(false);
     };
 
@@ -110,6 +118,21 @@ export default function AdminOptionsPage() {
                 </button>
             </div>
 
+            <div className="flex gap-4 items-center mb-6">
+                <SearchBar 
+                    value={search}
+                    onChange={setSearch}
+                    onSearch={() => { setPage(1); loadData(); }}
+                    placeholder="Buscar opción..."
+                />
+                <button 
+                    onClick={() => { setPage(1); loadData(); }}
+                    className="px-6 py-2 bg-stone-200 hover:bg-stone-300 font-medium rounded-lg transition-colors"
+                >
+                    Buscar
+                </button>
+            </div>
+
             {loading && <div className="text-center py-8 text-stone-500">Cargando...</div>}
 
             <div className="space-y-4">
@@ -151,7 +174,7 @@ export default function AdminOptionsPage() {
                                 {option.values.map((value: any) => (
                                     <div key={value.id} className="border border-stone-200 rounded-lg p-3 flex items-center gap-3">
                                         {value.image && (
-                                            <img src={`http://127.0.0.1:8000${value.image}`} alt={value.name} className="w-12 h-12 rounded object-cover" />
+                                            <img src={value.image} alt={value.name} className="w-12 h-12 rounded object-cover" />
                                         )}
                                         <div className="flex-1">
                                             <div className="font-medium text-stone-900 text-sm">{value.name}</div>
@@ -172,6 +195,8 @@ export default function AdminOptionsPage() {
                     </div>
                 ))}
             </div>
+
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
 
             {/* Modal Opción */}
             {modalOpen && (

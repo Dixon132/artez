@@ -16,6 +16,7 @@ export default function ProductsListClient() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [hoveredId, setHoveredId] = useState<number | null>(null);
+    const [activeImages, setActiveImages] = useState<Record<number, number>>({});
     const lastLoadedProducts = useRef<any[]>([]);
 
     useEffect(() => {
@@ -26,7 +27,8 @@ export default function ProductsListClient() {
         setLoading(true);
         setError(false);
         try {
-            const data = await productsApi.list(locale);
+            const response = await productsApi.list(locale);
+            const data = response.results || response;
             setProducts(data);
             lastLoadedProducts.current = data;
 
@@ -180,15 +182,71 @@ export default function ProductsListClient() {
                                     className="card-border rounded-2xl overflow-hidden border border-stone-200 bg-white"
                                     style={{ boxShadow: hoveredId === product.id ? "0 20px 60px -12px rgba(120,80,0,0.18)" : "0 1px 4px rgba(0,0,0,0.04)", transition: "box-shadow 0.4s ease" }}
                                 >
-                                    {/* Image */}
+                                    {/* Image Carousel */}
                                     <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-                                        {product.images?.[0] ? (
-                                            <img
-                                                src={product.images[0].image.startsWith("http") ? product.images[0].image : `http://127.0.0.1:8000${product.images[0].image}`}
-                                                alt={product.name || "Product image"}
-                                                loading={idx < 3 ? "eager" : "lazy"}
-                                                className="card-img w-full h-full object-cover"
-                                            />
+                                        {product.images?.length > 0 ? (
+                                            <>
+                                                <div className="w-full h-full relative">
+                                                    {product.images.map((img: any, imgIdx: number) => (
+                                                        <img
+                                                            key={imgIdx}
+                                                            src={img.image.startsWith("http") ? img.image : `http://127.0.0.1:8000${img.image}`}
+                                                            alt={`${product.name} ${imgIdx + 1}`}
+                                                            loading={idx < 3 && imgIdx === 0 ? "eager" : "lazy"}
+                                                            className="card-img w-full h-full object-cover absolute inset-0 transition-opacity duration-300"
+                                                            style={{ opacity: (activeImages[product.id] || 0) === imgIdx ? 1 : 0 }}
+                                                            draggable={false}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                
+                                                {product.images.length > 1 && (
+                                                    <>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                const current = activeImages[product.id] || 0;
+                                                                const prev = current === 0 ? product.images.length - 1 : current - 1;
+                                                                setActiveImages({ ...activeImages, [product.id]: prev });
+                                                            }}
+                                                            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-white z-10"
+                                                        >
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                const current = activeImages[product.id] || 0;
+                                                                const next = current === product.images.length - 1 ? 0 : current + 1;
+                                                                setActiveImages({ ...activeImages, [product.id]: next });
+                                                            }}
+                                                            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-white z-10"
+                                                        >
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+                                                        </button>
+                                                        
+                                                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                                                            {product.images.map((_: any, dotIdx: number) => (
+                                                                <button
+                                                                    key={dotIdx}
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        setActiveImages({ ...activeImages, [product.id]: dotIdx });
+                                                                    }}
+                                                                    className={`w-1.5 h-1.5 rounded-full transition-all ${
+                                                                        (activeImages[product.id] || 0) === dotIdx
+                                                                            ? "bg-white w-4"
+                                                                            : "bg-white/50"
+                                                                    }`}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </>
                                         ) : (
                                             <div className="w-full h-full bg-gradient-to-br from-amber-50 to-stone-100 flex items-center justify-center">
                                                 <svg className="w-16 h-16 text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>

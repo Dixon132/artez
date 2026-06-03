@@ -1,5 +1,10 @@
-from django.urls import path
-from .views import CartViewSet, OrderViewSet
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import CartViewSet, OrderViewSet, ShippingZoneViewSet, CouponViewSet
+
+router = DefaultRouter()
+router.register(r'shipping-zones', ShippingZoneViewSet, basename='shippingzone')
+router.register(r'coupons', CouponViewSet, basename='coupon')
 
 # ==============================
 # 🛒 CART URLS
@@ -47,6 +52,7 @@ order_update_status = OrderViewSet.as_view({
 # ==============================
 
 urlpatterns = [
+    path('', include(router.urls)),
     # Cart endpoints
     path('cart/add-item/', cart_list, name='cart-add-item'),
     path('cart/<str:pk>/', cart_detail, name='cart-detail'),

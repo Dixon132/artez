@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { categoriesApi } from "@/services/api";
+import Pagination from "@/components/admin/Pagination";
+import SearchBar from "@/components/admin/SearchBar";
 
 export default function AdminCategoriesPage() {
     const [categories, setCategories] = useState<any[]>([]);
@@ -9,15 +11,21 @@ export default function AdminCategoriesPage() {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<any>(null);
     const [form, setForm] = useState({ name: "" });
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [page]);
 
     const loadData = async () => {
         setLoading(true);
-        const data = await categoriesApi.list();
-        setCategories(data);
+        const response = await categoriesApi.list('en', page, search);
+        setCategories(response.results || response);
+        if (response.count) {
+            setTotalPages(Math.ceil(response.count / 10));
+        }
         setLoading(false);
     };
 
@@ -71,6 +79,21 @@ export default function AdminCategoriesPage() {
                 </button>
             </div>
 
+            <div className="flex gap-4 items-center mb-6">
+                <SearchBar 
+                    value={search}
+                    onChange={setSearch}
+                    onSearch={() => { setPage(1); loadData(); }}
+                    placeholder="Buscar categoría..."
+                />
+                <button 
+                    onClick={() => { setPage(1); loadData(); }}
+                    className="px-6 py-2 bg-stone-200 hover:bg-stone-300 font-medium rounded-lg transition-colors"
+                >
+                    Buscar
+                </button>
+            </div>
+
             {loading && <div className="text-center py-8 text-stone-500">Cargando...</div>}
 
             <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
@@ -112,6 +135,8 @@ export default function AdminCategoriesPage() {
                     </tbody>
                 </table>
             </div>
+
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
 
             {/* Modal */}
             {modalOpen && (

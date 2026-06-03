@@ -1,13 +1,12 @@
 "use client";
 
-export default function OrderSummary({ cart, customerData }: { cart: any; customerData: any }) {
+export default function OrderSummary({ cart, customerData, shippingCost = 0, discountApplied = 0 }: { cart: any; customerData: any; shippingCost?: number; discountApplied?: number }) {
     const subtotal = cart.items.reduce((acc: number, item: any) => {
         const itemPrice = Number(item.product_price) + item.selected_options.reduce((sum: number, opt: any) => sum + Number(opt.extra_price), 0);
         return acc + itemPrice * item.quantity;
     }, 0);
 
-    const shipping: number = 0;
-    const total = subtotal + shipping;
+    const total = Math.max(0, subtotal + shippingCost - discountApplied);
 
     return (
         <div className="order-summary">
@@ -91,9 +90,15 @@ export default function OrderSummary({ cart, customerData }: { cart: any; custom
                         <span>Subtotal</span>
                         <span>${subtotal.toFixed(2)}</span>
                     </div>
+                    {discountApplied > 0 && (
+                        <div className="total-row text-green-600">
+                            <span>Descuento</span>
+                            <span>-${discountApplied.toFixed(2)}</span>
+                        </div>
+                    )}
                     <div className="total-row">
                         <span>Envío</span>
-                        <span>{shipping === 0 ? 'Gratis' : `$${shipping.toFixed(2)}`}</span>
+                        <span>{shippingCost === 0 ? 'Gratis' : `$${shippingCost.toFixed(2)}`}</span>
                     </div>
                     <div className="total-row total-row--final">
                         <span>Total</span>

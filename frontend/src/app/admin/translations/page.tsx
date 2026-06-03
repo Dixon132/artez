@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { productsApi, categoriesApi, optionsApi, optionValuesApi, translationsApi } from '@/services/api';
+import Pagination from '@/components/admin/Pagination';
+import SearchBar from '@/components/admin/SearchBar';
 
 const LANGUAGES = [
   { code: 'es', name: 'Español' },
@@ -19,41 +21,48 @@ export default function TranslationsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingTranslation, setEditingTranslation] = useState<any>(null);
   const [formData, setFormData] = useState<any>({});
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     loadData();
-  }, [activeTab]);
+  }, [activeTab, page]);
 
   const loadData = async () => {
     try {
       if (activeTab === 'products') {
         const [prods, trans] = await Promise.all([
-          productsApi.list(),
+          productsApi.list('en', page, search),
           translationsApi.listProductTranslations(),
         ]);
-        setProducts(prods);
-        setTranslations(trans);
+        setProducts(prods.results || prods);
+        setTranslations(trans.results || trans);
+        if (prods.count) setTotalPages(Math.ceil(prods.count / 10));
       } else if (activeTab === 'categories') {
         const [cats, trans] = await Promise.all([
-          categoriesApi.list(),
+          categoriesApi.list('en', page, search),
           translationsApi.listCategoryTranslations(),
         ]);
-        setCategories(cats);
-        setTranslations(trans);
+        setCategories(cats.results || cats);
+        setTranslations(trans.results || trans);
+        if (cats.count) setTotalPages(Math.ceil(cats.count / 10));
       } else if (activeTab === 'options') {
         const [opts, trans] = await Promise.all([
-          optionsApi.list(),
+          optionsApi.list('en', page, search),
           translationsApi.listOptionTranslations(),
         ]);
-        setOptions(opts);
-        setTranslations(trans);
+        setOptions(opts.results || opts);
+        setTranslations(trans.results || trans);
+        if (opts.count) setTotalPages(Math.ceil(opts.count / 10));
       } else if (activeTab === 'values') {
         const [vals, trans] = await Promise.all([
-          optionValuesApi.list(),
+          optionValuesApi.list('en', page, search),
           translationsApi.listOptionValueTranslations(),
         ]);
-        setOptionValues(vals);
-        setTranslations(trans);
+        setOptionValues(vals.results || vals);
+        setTranslations(trans.results || trans);
+        if (vals.count) setTotalPages(Math.ceil(vals.count / 10));
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -142,6 +151,21 @@ export default function TranslationsPage() {
     <div className="p-8">
       <h1 className="text-3xl font-light mb-8 text-stone-800">Traducciones</h1>
 
+      <div className="flex gap-4 items-center mb-6">
+        <SearchBar 
+          value={search}
+          onChange={setSearch}
+          onSearch={() => { setPage(1); loadData(); }}
+          placeholder="Buscar..."
+        />
+        <button 
+          onClick={() => { setPage(1); loadData(); }}
+          className="px-6 py-2 bg-stone-200 hover:bg-stone-300 font-medium rounded-lg transition-colors"
+        >
+          Buscar
+        </button>
+      </div>
+
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-stone-200">
         {[
@@ -219,6 +243,8 @@ export default function TranslationsPage() {
           );
         })}
       </div>
+
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
 
       {/* Modal */}
       {showModal && (

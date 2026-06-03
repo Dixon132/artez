@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "@/lib/navigation";
 import { useTranslations } from "next-intl";
-import { cartApi, ordersApi, getSessionId } from "@/services/api";
+import { cartApi, ordersApi, getSessionId, shippingZonesApi, couponsApi } from "@/services/api";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import { gaBeginCheckout } from "@/lib/analytics";
 import { fbInitiateCheckout } from "@/lib/fbpixel";
+import PaymentModal from "@/components/checkout/PaymentModal";
 
 const shippingCountries = [
     "United States", "Canada", "United Kingdom", "Germany", "France",
@@ -47,10 +48,60 @@ export default function CheckoutPage() {
         postalCode: "",
     });
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    
+    const [shippingZones, setShippingZones] = useState<any[]>([]);
+    const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
+    const [couponCode, setCouponCode] = useState("");
+    const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+    const [couponError, setCouponError] = useState("");
 
     useEffect(() => {
         loadCart();
+        loadShippingZones();
     }, []);
+
+    const loadShippingZones = async () => {
+        try {
+            const res = await shippingZonesApi.list();
+            setShippingZones(res.results || res);
+        } catch (e) {
+            console.error("Error loading shipping zones", e);
+        }
+    };
+
+    const handleApplyCoupon = async () => {
+        setCouponError("");
+        if (!couponCode.trim()) return;
+        try {
+            const res = await couponsApi.validate(couponCode);
+            if (res.error) {
+                setCouponError(res.error);
+                setAppliedCoupon(null);
+            } else {
+                setAppliedCoupon(res);
+            }
+        } catch (e) {
+            setCouponError("Error al validar cupón");
+            setAppliedCoupon(null);
+        }
+    };
+
+    const subtotal = cart?.items.reduce((acc: number, item: any) => {
+        const itemPrice = Number(item.product_price) + item.selected_options.reduce((sum: number, opt: any) => sum + Number(opt.extra_price), 0);
+        return acc + itemPrice * item.quantity;
+    }, 0) || 0;
+
+    const shippingCost = selectedZoneId ? Number(shippingZones.find((z:any)=>z.id == selectedZoneId)?.price || 0) : 0;
+    
+    let discountApplied = 0;
+    if (appliedCoupon) {
+        if (appliedCoupon.discount_type === 'fixed') {
+            discountApplied = Number(appliedCoupon.discount_value);
+        } else {
+            discountApplied = (subtotal * Number(appliedCoupon.discount_value)) / 100;
+        }
+    }
 
     const loadCart = async () => {
         setLoading(true);
@@ -80,12 +131,21 @@ export default function CheckoutPage() {
         if (!address.country.trim()) {
             errors.country = t("required");
         }
+        if (!selectedZoneId) {
+            errors.zone = "Por favor selecciona una zona de envío";
+        }
 
         if (Object.keys(errors).length > 0) {
             setValidationErrors(errors);
             return;
         }
 
+        // Show payment modal instead of creating order directly
+        setShowPaymentModal(true);
+    };
+
+    const handlePaymentConfirmed = async () => {
+        setShowPaymentModal(false);
         setSubmitting(true);
         try {
             const sessionId = getSessionId();
@@ -95,8 +155,10 @@ export default function CheckoutPage() {
                 email: form.email,
                 full_name: form.full_name,
                 address: formattedAddress,
+                shipping_zone_id: selectedZoneId,
+                coupon_code: appliedCoupon?.code
             });
-            router.push(`/checkout/success?order=${response.order.id}`);
+            window.location.href = `/checkout/success?order=${response.order.id}`;
         } catch (error) {
             alert("Error al crear la orden");
         } finally {
@@ -249,6 +311,33 @@ export default function CheckoutPage() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-stone-700 mb-2">
+                                                Zona de Envío *
+                                            </label>
+                                            <select
+                                                value={selectedZoneId || ""}
+                                                onChange={(e) => {
+                                                    setSelectedZoneId(Number(e.target.value));
+                                                    if (validationErrors.zone) {
+                                                        setValidationErrors(prev => ({...prev, zone: ""}));
+                                                    }
+                                                }}
+                                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900 bg-white ${validationErrors.zone ? "border-red-500" : "border-stone-300"}`}
+                                                required
+                                            >
+                                                <option value="">Selecciona Zona</option>
+                                                {shippingZones.map((zone) => (
+                                                    <option key={zone.id} value={zone.id}>
+                                                        {zone.name} (${zone.price})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {validationErrors.zone && (
+                                                <p className="mt-1 text-sm text-red-600">{validationErrors.zone}</p>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-stone-700 mb-2">
                                                 {t("country")} *
                                             </label>
                                             <select
@@ -282,6 +371,41 @@ export default function CheckoutPage() {
                                             />
                                         </div>
                                     </div>
+                                    
+                                    <div className="pt-4 border-t border-stone-100">
+                                        <label className="block text-sm font-medium text-stone-700 mb-2">
+                                            Código de Descuento (Opcional)
+                                        </label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={couponCode}
+                                                onChange={(e) => setCouponCode(e.target.value)}
+                                                className="flex-1 px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900"
+                                                placeholder="Ej. VERANO20"
+                                                disabled={!!appliedCoupon}
+                                            />
+                                            {!appliedCoupon ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleApplyCoupon}
+                                                    className="px-6 py-3 bg-stone-800 text-white font-semibold rounded-lg hover:bg-stone-700 transition-colors"
+                                                >
+                                                    Aplicar
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setAppliedCoupon(null); setCouponCode(""); }}
+                                                    className="px-6 py-3 bg-red-100 text-red-600 font-semibold rounded-lg hover:bg-red-200 transition-colors"
+                                                >
+                                                    Quitar
+                                                </button>
+                                            )}
+                                        </div>
+                                        {couponError && <p className="mt-2 text-sm text-red-600 font-medium">{couponError}</p>}
+                                        {appliedCoupon && <p className="mt-2 text-sm text-green-600 font-medium">Cupón aplicado correctamente</p>}
+                                    </div>
                                 </div>
 
                                 <p className="mt-4 text-sm text-stone-500 italic">
@@ -304,7 +428,12 @@ export default function CheckoutPage() {
 
                         {/* Right column: Summary */}
                         <div className="lg:sticky lg:top-8 lg:self-start">
-                            <OrderSummary cart={cart} customerData={{ ...form, address: formatAddress(address) }} />
+                            <OrderSummary 
+                                cart={cart} 
+                                customerData={{ ...form, address: formatAddress(address) }} 
+                                shippingCost={shippingCost}
+                                discountApplied={discountApplied}
+                            />
                             
                             <button
                                 type="submit"
@@ -316,6 +445,14 @@ export default function CheckoutPage() {
                         </div>
                     </div>
                 </form>
+
+                {/* Payment Method Modal (DEMO) */}
+                <PaymentModal
+                    isOpen={showPaymentModal}
+                    total={cart?.total || 0}
+                    onClose={() => setShowPaymentModal(false)}
+                    onConfirm={handlePaymentConfirmed}
+                />
             </div>
         </main>
     );

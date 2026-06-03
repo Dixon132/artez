@@ -6,8 +6,10 @@ const API_URL = 'http://127.0.0.1:8000/api';
 
 export const productsApi = {
     // Listar productos
-    list: async (lang = 'en') => {
-        const res = await fetch(`${API_URL}/products/?lang=${lang}`);
+    list: async (lang = 'en', page = 1, search = '') => {
+        const queryParams = new URLSearchParams({ lang, page: page.toString() });
+        if (search) queryParams.append('search', search);
+        const res = await fetch(`${API_URL}/products/?${queryParams.toString()}`);
         return res.json();
     },
 
@@ -70,8 +72,10 @@ export const productsApi = {
 // ==============================
 
 export const categoriesApi = {
-    list: async (lang = 'en') => {
-        const res = await fetch(`${API_URL}/categories/?lang=${lang}`);
+    list: async (lang = 'en', page = 1, search = '') => {
+        const queryParams = new URLSearchParams({ lang, page: page.toString() });
+        if (search) queryParams.append('search', search);
+        const res = await fetch(`${API_URL}/categories/?${queryParams.toString()}`);
         return res.json();
     },
 
@@ -111,8 +115,10 @@ export const categoriesApi = {
 // ==============================
 
 export const optionsApi = {
-    list: async (lang = 'en') => {
-        const res = await fetch(`${API_URL}/options/?lang=${lang}`);
+    list: async (lang = 'en', page = 1, search = '') => {
+        const queryParams = new URLSearchParams({ lang, page: page.toString() });
+        if (search) queryParams.append('search', search);
+        const res = await fetch(`${API_URL}/options/?${queryParams.toString()}`);
         return res.json();
     },
 
@@ -152,8 +158,10 @@ export const optionsApi = {
 // ==============================
 
 export const optionValuesApi = {
-    list: async (lang = 'en') => {
-        const res = await fetch(`${API_URL}/option-values/?lang=${lang}`);
+    list: async (lang = 'en', page = 1, search = '') => {
+        const queryParams = new URLSearchParams({ lang, page: page.toString() });
+        if (search) queryParams.append('search', search);
+        const res = await fetch(`${API_URL}/option-values/?${queryParams.toString()}`);
         return res.json();
     },
 
@@ -246,8 +254,11 @@ export const cartApi = {
 
 export const ordersApi = {
     // Listar órdenes
-    list: async () => {
-        const res = await fetch(`${API_URL}/orders/`);
+    list: async (page = 1, search = '', status = '') => {
+        const queryParams = new URLSearchParams({ page: page.toString() });
+        if (search) queryParams.append('search', search);
+        if (status) queryParams.append('status', status);
+        const res = await fetch(`${API_URL}/orders/?${queryParams.toString()}`);
         return res.json();
     },
 
@@ -263,6 +274,8 @@ export const ordersApi = {
         email: string;
         full_name: string;
         address: string;
+        shipping_zone_id?: number | null;
+        coupon_code?: string | null;
     }) => {
         const res = await fetch(`${API_URL}/orders/create/`, {
             method: 'POST',
@@ -281,6 +294,101 @@ export const ordersApi = {
         });
         return res.json();
     },
+};
+
+// ==============================
+// 🏦 FINANCE & AUTH API
+// ==============================
+
+export const authApi = {
+    login: async (credentials: any) => {
+        const res = await fetch(`${API_URL}/token/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(credentials),
+        });
+        return res.json();
+    }
+};
+
+export const financeApi = {
+    list: async (page = 1, type = '', search = '') => {
+        const queryParams = new URLSearchParams({ page: page.toString() });
+        if (type) queryParams.append('type', type);
+        if (search) queryParams.append('search', search);
+        const res = await fetch(`${API_URL}/transactions/?${queryParams.toString()}`);
+        return res.json();
+    },
+    summary: async () => {
+        const res = await fetch(`${API_URL}/transactions/summary/`);
+        return res.json();
+    },
+    create: async (data: any) => {
+        const res = await fetch(`${API_URL}/transactions/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        return res.json();
+    },
+    delete: async (id: number) => {
+        const res = await fetch(`${API_URL}/transactions/${id}/`, {
+            method: 'DELETE',
+        });
+        return res.ok;
+    },
+    chartData: async (period: 'week' | 'month' | 'year' = 'month') => {
+        const res = await fetch(`${API_URL}/transactions/chart_data/?period=${period}`);
+        return res.json();
+    }
+};
+
+export const shippingZonesApi = {
+    list: async () => {
+        const res = await fetch(`${API_URL}/shipping-zones/`);
+        return res.json();
+    },
+    create: async (data: any) => {
+        const res = await fetch(`${API_URL}/shipping-zones/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        return res.json();
+    },
+    delete: async (id: number) => {
+        const res = await fetch(`${API_URL}/shipping-zones/${id}/`, { method: 'DELETE' });
+        return res.ok;
+    }
+};
+
+export const couponsApi = {
+    list: async (page = 1, search = '') => {
+        const queryParams = new URLSearchParams({ page: page.toString() });
+        if (search) queryParams.append('search', search);
+        const res = await fetch(`${API_URL}/coupons/?${queryParams.toString()}`);
+        return res.json();
+    },
+    generate: async (data: any) => {
+        const res = await fetch(`${API_URL}/coupons/generate/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        return res.json();
+    },
+    validate: async (code: string) => {
+        const res = await fetch(`${API_URL}/coupons/validate/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code }),
+        });
+        return res.json();
+    },
+    delete: async (id: number) => {
+        const res = await fetch(`${API_URL}/coupons/${id}/`, { method: 'DELETE' });
+        return res.ok;
+    }
 };
 
 // ==============================

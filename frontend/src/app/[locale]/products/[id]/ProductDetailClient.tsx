@@ -276,6 +276,13 @@ export default function ProductDetailClient() {
                                                             }))}
                                                             className={`chip ${sel ? "chip--sel" : ""}`}
                                                         >
+                                                            {val.image && (
+                                                                <img
+                                                                    src={val.image.startsWith("http") ? val.image : `http://127.0.0.1:8000${val.image}`}
+                                                                    alt={val.name}
+                                                                    className="chip-img"
+                                                                />
+                                                            )}
                                                             {val.name}
                                                             {Number(val.base_extra_price) > 0 && (
                                                                 <span className="chip-extra">+${val.base_extra_price}</span>
@@ -596,6 +603,7 @@ const CSS = `
     box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15);
 }
 .chip-extra { font-size: 12px; color: #a8a29e; font-weight: 500; }
+.chip-img { width: 28px; height: 28px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
 
 .qty-group { }
 .qty {

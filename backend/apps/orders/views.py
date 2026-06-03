@@ -1,14 +1,16 @@
 import re
 
-from rest_framework.viewsets import ViewSet
+from rest_framework.viewsets import ViewSet, ReadOnlyModelViewSet, ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, filters
+from django_filters.rest_framework import DjangoFilterBackend
 from django.db import transaction
-from .models import Cart, CartItem, CartItemOption, Order, OrderItem, OrderItemOption
+from .models import Cart, CartItem, CartItemOption, Order, OrderItem, OrderItemOption, ShippingZone, Coupon
 from .serializers import (
     CartSerializer, AddToCartSerializer, 
-    OrderSerializer, CreateOrderSerializer, UpdateOrderStatusSerializer
+    OrderSerializer, CreateOrderSerializer, UpdateOrderStatusSerializer,
+    ShippingZoneSerializer, CouponSerializer
 )
 from apps.products.models import Product, Option, OptionValue
 
@@ -175,39 +177,15 @@ class CartViewSet(ViewSet):
 # 📦 ORDER VIEWSET
 # ==============================
 
-class OrderViewSet(ViewSet):
+class OrderViewSet(ReadOnlyModelViewSet):
     """
     ViewSet para órdenes
-    
-    ENDPOINTS:
-    
-    GET /api/orders/
-    - Listar todas las órdenes (admin)
-    
-    GET /api/orders/{id}/
-    - Detalle de orden
-    
-    POST /api/orders/create/
-    - Crear orden desde carrito
-    
-    PATCH /api/orders/{id}/update-status/
-    - Actualizar estado de orden (admin)
     """
-
-    def list(self, request):
-        """Listar todas las órdenes"""
-        orders = Order.objects.all().order_by('-created_at')
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data)
-
-    def retrieve(self, request, pk=None):
-        """Detalle de orden"""
-        try:
-            order = Order.objects.get(id=pk)
-            serializer = OrderSerializer(order)
-            return Response(serializer.data)
-        except Order.DoesNotExist:
-            return Response({'error': 'Orden no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+    queryset = Order.objects.all().order_by('-created_at')
+    serializer_class = OrderSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['status', 'email']
+    search_fields = ['full_name', 'email', 'address']
 
     @action(detail=False, methods=['post'])
     @transaction.atomic
@@ -236,6 +214,30 @@ class OrderViewSet(ViewSet):
             for opt in item.selected_options.all():
                 item_price += opt.value.base_extra_price
             total_price += item_price * item.quantity
+            
+        shipping_zone = None
+        shipping_cost = 0
+        if 'shipping_zone_id' in data and data['shipping_zone_id']:
+            try:
+                shipping_zone = ShippingZone.objects.get(id=data['shipping_zone_id'])
+                shipping_cost = shipping_zone.price
+                total_price += shipping_cost
+            except ShippingZone.DoesNotExist:
+                pass
+                
+        coupon = None
+        discount_applied = 0
+        if 'coupon_code' in data and data['coupon_code']:
+            try:
+                coupon = Coupon.objects.get(code=data['coupon_code'], is_active=True)
+                if coupon.discount_type == 'fixed':
+                    discount_applied = coupon.discount_value
+                else:
+                    discount_applied = (total_price * coupon.discount_value) / 100
+                total_price -= discount_applied
+                if total_price < 0: total_price = 0
+            except Coupon.DoesNotExist:
+                pass
 
         # Crear orden
         order = Order.objects.create(
@@ -243,7 +245,11 @@ class OrderViewSet(ViewSet):
             full_name=data['full_name'],
             address=data['address'],
             total_price=total_price,
-            status='pending'
+            shipping_zone=shipping_zone,
+            shipping_cost=shipping_cost,
+            coupon=coupon,
+            discount_applied=discount_applied,
+            status='incoming'
         )
 
         # Crear items de orden (snapshot)
@@ -275,7 +281,7 @@ class OrderViewSet(ViewSet):
 
     @action(detail=True, methods=['patch'], url_path='update-status')
     def update_status(self, request, pk=None):
-        """Actualizar estado de orden (admin)"""
+        """Actualizar estado de orden (admin) - solo permite avanzar al siguiente estado"""
         try:
             order = Order.objects.get(id=pk)
         except Order.DoesNotExist:
@@ -286,7 +292,25 @@ class OrderViewSet(ViewSet):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        order.status = serializer.validated_data['status']
+        new_status = serializer.validated_data['status']
+        current_status = order.status
+        
+        if new_status == 'cancelled':
+            order.status = 'cancelled'
+            order.save()
+            order_serializer = OrderSerializer(order)
+            return Response({
+                'message': 'Orden cancelada',
+                'order': order_serializer.data
+            })
+        
+        next_allowed = Order.STATUS_FLOW.get(current_status)
+        if not next_allowed or new_status != next_allowed:
+            return Response({
+                'error': f'No se puede cambiar de "{current_status}" a "{new_status}". El siguiente estado permitido es: {next_allowed}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        order.status = new_status
         order.save()
 
         order_serializer = OrderSerializer(order)
@@ -294,3 +318,46 @@ class OrderViewSet(ViewSet):
             'message': 'Estado actualizado',
             'order': order_serializer.data
         })
+
+class ShippingZoneViewSet(ModelViewSet):
+    queryset = ShippingZone.objects.all()
+    serializer_class = ShippingZoneSerializer
+    
+class CouponViewSet(ModelViewSet):
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['code']
+    
+    @action(detail=False, methods=['post'])
+    def generate(self, request):
+        import random
+        import string
+        from datetime import datetime, timedelta
+        
+        code = request.data.get('code') or ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        discount_type = request.data.get('discount_type', 'percent')
+        discount_value = request.data.get('discount_value', 10)
+        expires_in_months = request.data.get('expires_in_months')
+        
+        expires_at = None
+        if expires_in_months:
+            months = int(expires_in_months)
+            expires_at = datetime.now() + timedelta(days=months * 30)
+        
+        coupon = Coupon.objects.create(
+            code=code,
+            discount_type=discount_type,
+            discount_value=discount_value,
+            expires_at=expires_at
+        )
+        return Response(CouponSerializer(coupon).data, status=status.HTTP_201_CREATED)
+        
+    @action(detail=False, methods=['post'])
+    def validate(self, request):
+        code = request.data.get('code')
+        try:
+            coupon = Coupon.objects.get(code=code, is_active=True)
+            return Response(CouponSerializer(coupon).data)
+        except Coupon.DoesNotExist:
+            return Response({'error': 'Cupón inválido o inactivo'}, status=status.HTTP_404_NOT_FOUND)
