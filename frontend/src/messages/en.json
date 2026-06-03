@@ -28,7 +28,8 @@
     "fastShipping": "Fast shipping",
     "returns": "Returns",
     "errorLoading": "Could not load product information",
-    "retryLoad": "Try again"
+    "retryLoad": "Try again",
+    "total": "Total"
   },
   "cart": {
     "title": "Shopping Cart",

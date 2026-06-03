@@ -1,5 +1,13 @@
-const API_URL = 'http://127.0.0.1:8000/api';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+export const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000';
 
+export const getAbsoluteMediaUrl = (path: string | null | undefined): string => {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
+    return `${BACKEND_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+};
 // ==============================
 // 🔷 PRODUCTS API
 // ==============================

@@ -6,8 +6,9 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export function useHeroAnimations() {
+export function useHeroAnimations(active: boolean = true) {
     useEffect(() => {
+        if (!active) return;
         const tl = gsap.timeline({ delay: 0.3 });
         
         tl.fromTo(".hero-letter",
@@ -54,5 +55,5 @@ export function useHeroAnimations() {
             tl.kill();
             ScrollTrigger.getAll().forEach(t => t.kill());
         };
-    }, []);
+    }, [active]);
 }

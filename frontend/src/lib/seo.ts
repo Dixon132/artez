@@ -7,6 +7,13 @@ export interface AlternateLinks {
     languages: Record<string, string>;
 }
 
+export interface OgImageConfig {
+    url: string;
+    width: number;
+    height: number;
+    alt: string;
+}
+
 /**
  * Returns the base URL for canonical links and sitemap entries.
  * Uses NEXT_PUBLIC_BASE_URL env var or falls back to localhost.
@@ -129,4 +136,50 @@ export function getCommonMetadata(locale: string): Partial<Metadata> {
             alternateLocale: alternateLocales,
         },
     };
+}
+
+/**
+ * Returns the default OG image configuration for pages without specific images.
+ */
+export function getDefaultOgImage(): OgImageConfig {
+    const baseUrl = getBaseUrl();
+    return {
+        url: `${baseUrl}/img/og-default.jpg`,
+        width: 1200,
+        height: 630,
+        alt: "Artesena - Handcrafted Bolivian Instruments",
+    };
+}
+
+/**
+ * Returns the OG image config for a product, falling back to default.
+ * Uses the first product image if available, otherwise returns the default brand image.
+ */
+export function getProductOgImage(
+    images: Array<{ image: string }> | undefined,
+    productName: string
+): OgImageConfig {
+    const baseUrl = getBaseUrl();
+    if (images && images.length > 0) {
+        const imageUrl = images[0].image.startsWith("http")
+            ? images[0].image
+            : `${baseUrl}${images[0].image}`;
+        return {
+            url: imageUrl,
+            width: 1200,
+            height: 630,
+            alt: productName,
+        };
+    }
+    return getDefaultOgImage();
+}
+
+/**
+ * Truncates text to a maximum length with ellipsis.
+ * Returns empty string for falsy input.
+ */
+export function truncate(text: string, maxLength: number): string {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength - 3) + "...";
 }

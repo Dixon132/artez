@@ -2,11 +2,11 @@
 
 import { useEffect, useRef } from "react";
 
-export function useVantaWaves(color: number = 0xf59e0b) {
+export function useVantaWaves(color: number = 0xf59e0b, active: boolean = true) {
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!containerRef.current) return;
+        if (!active || !containerRef.current) return;
         let effect: { destroy: () => void } | null = null;
 
         import("three").then((THREE) => {
@@ -33,7 +33,7 @@ export function useVantaWaves(color: number = 0xf59e0b) {
         });
 
         return () => { effect?.destroy(); };
-    }, [color]);
+    }, [color, active]);
 
     return containerRef;
 }

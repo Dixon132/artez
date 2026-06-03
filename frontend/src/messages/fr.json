@@ -28,7 +28,8 @@
     "fastShipping": "Livraison rapide",
     "returns": "Retours",
     "errorLoading": "Impossible de charger les informations du produit",
-    "retryLoad": "Réessayer"
+    "retryLoad": "Réessayer",
+    "total": "Total"
   },
   "cart": {
     "title": "Panier d'Achat",

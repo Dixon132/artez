@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
-import { locales, localeToBcp47, type Locale } from "@/lib/i18n";
-import { getAlternateLinks, getBaseUrl } from "@/lib/seo";
+import { localeToBcp47, type Locale } from "@/lib/i18n";
+import {
+    getAlternateLinks,
+    getBaseUrl,
+    getCommonMetadata,
+    getProductOgImage,
+    truncate,
+} from "@/lib/seo";
 import ProductJsonLd from "@/components/seo/ProductJsonLd";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
+import Breadcrumb from "@/components/seo/Breadcrumb";
 import ProductDetailClient from "./ProductDetailClient";
 
-const API_URL = "http://127.0.0.1:8000/api";
-
-function truncate(text: string, maxLength: number): string {
-    if (!text) return "";
-    if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength - 3) + "...";
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
 async function fetchProduct(id: string, lang: string) {
     try {
@@ -43,58 +45,109 @@ export async function generateMetadata({
         };
     }
 
-    const ogTitle = truncate(product.name || "", 95);
-    const ogDescription = truncate(product.description || "", 200);
+    const title = product.name || "Product";
+    const description = truncate(product.description || "", 160);
 
-    // Get canonical URL and hreflang alternates using SEO utilities
-    const localizedPathname = `/products/${id}`;
-    const { canonical, languages } = getAlternateLinks(localizedPathname, locale);
+    // Get canonical URL and hreflang alternates
+    const alternateLinks = getAlternateLinks(`/products/${id}`, locale);
 
-    const currentBcp47 = localeToBcp47[locale as Locale] || "en_US";
-    const alternateLocales = locales
-        .filter((l) => l !== locale)
-        .map((l) => localeToBcp47[l]);
+    // Get common metadata (og:locale, alternateLocale)
+    const commonMetadata = getCommonMetadata(locale);
 
-    const images = product.images || [];
-    const baseUrl = getBaseUrl();
-    const ogImages = images.length > 0
-        ? [{ url: images[0].image.startsWith("http") ? images[0].image : `${baseUrl}${images[0].image}` }]
-        : [];
+    const currentBcp47 = localeToBcp47[locale as Locale];
+
+    // Get OG image (product image or default fallback)
+    const ogImage = getProductOgImage(product.images, title);
 
     return {
-        title: ogTitle,
-        description: ogDescription,
+        title,
+        description,
         alternates: {
-            canonical,
-            languages,
-        },
-        twitter: {
-            card: "summary_large_image",
-            title: ogTitle,
-            description: ogDescription,
-            ...(ogImages.length > 0 && { images: ogImages }),
+            canonical: alternateLinks.canonical,
+            languages: alternateLinks.languages,
         },
         openGraph: {
-            title: ogTitle,
-            description: ogDescription,
-            ...(ogImages.length > 0 && { images: ogImages }),
-            url: canonical,
-            type: "website",
+            title,
+            description,
+            images: [
+                {
+                    url: ogImage.url,
+                    width: ogImage.width,
+                    height: ogImage.height,
+                    alt: ogImage.alt,
+                },
+            ],
+            url: alternateLinks.canonical,
+            type: "website" as const,
             locale: currentBcp47,
-            alternateLocale: alternateLocales,
+            alternateLocale: commonMetadata.openGraph?.alternateLocale,
+            siteName: "Artesena",
         },
         other: {
-            "og:type": "og:product",
+            "og:type": "product",
             "product:price:amount": String(product.base_price),
             "product:price:currency": "USD",
             "product:availability": "in stock",
         },
+        twitter: {
+            card: "summary_large_image",
+            title,
+            description,
+            images: [ogImage.url],
+        },
     };
+}
+
+/**
+ * Returns the localized products path for a given locale.
+ */
+function getLocalizedProductsPath(locale: string): string {
+    const paths: Record<string, string> = {
+        en: "/products",
+        es: "/productos",
+        fr: "/produits",
+    };
+    return paths[locale] || "/products";
+}
+
+/**
+ * Returns the localized "Home" label for breadcrumbs.
+ */
+function getHomeLabel(locale: string): string {
+    const labels: Record<string, string> = {
+        en: "Home",
+        es: "Inicio",
+        fr: "Accueil",
+    };
+    return labels[locale] || "Home";
+}
+
+/**
+ * Returns the localized "Products" label for breadcrumbs.
+ */
+function getProductsLabel(locale: string): string {
+    const labels: Record<string, string> = {
+        en: "Products",
+        es: "Productos",
+        fr: "Produits",
+    };
+    return labels[locale] || "Products";
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
     const { locale, id } = await params;
     const product = await fetchProduct(id, locale);
+    const baseUrl = getBaseUrl();
+    const productsPath = getLocalizedProductsPath(locale);
+
+    // Breadcrumb items using next-intl routing pathname keys for proper localized links
+    const breadcrumbItems = [
+        { name: getHomeLabel(locale), href: `/${locale}`, pathKey: "/" },
+        { name: getProductsLabel(locale), href: `/${locale}${productsPath}`, pathKey: "/products" },
+        ...(product
+            ? [{ name: product.name, href: `/${locale}${productsPath}/${id}`, pathKey: "/products/[id]", params: { id } }]
+            : []),
+    ];
 
     return (
         <>
@@ -104,8 +157,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
                     description={product.description}
                     base_price={product.base_price}
                     images={product.images}
+                    sku={product.sku}
+                    category={product.category_name}
                 />
             )}
+            <BreadcrumbJsonLd items={breadcrumbItems} />
+            <div className="max-w-7xl mx-auto px-6 md:px-8 pt-4">
+                <Breadcrumb items={breadcrumbItems} />
+            </div>
             <ProductDetailClient />
         </>
     );

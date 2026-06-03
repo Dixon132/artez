@@ -29,17 +29,19 @@ export default function Navbar({ locale }: { locale: string }) {
         return pathname;
     };
 
-    const navClass = isHome 
-        ? (scrolled 
-            ? "bg-white/95 backdrop-blur-md shadow-lg" 
-            : "bg-gradient-to-b from-black/45 to-transparent")
-        : "bg-white/95 backdrop-blur-md shadow-sm";
+    const navClass = isHome
+        ? (scrolled
+            ? "bg-gradient-to-b from-black/60 to-transparent backdrop-blur-[2px]"
+            : "bg-gradient-to-b from-black/30 to-transparent")
+        : "bg-white/70 backdrop-blur-[4px] shadow-sm";
 
-    const textClass = (isHome && !scrolled) ? "text-white" : "text-stone-900";
-    const textHoverClass = (isHome && !scrolled) ? "text-white/80 hover:text-amber-400" : "text-stone-600 hover:text-amber-600";
+    const textClass = isHome ? "text-white" : "text-stone-900";
+    const textHoverClass = isHome ? "text-white/80 hover:text-amber-400" : "text-stone-700 hover:text-amber-600";
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-10 py-5 transition-all duration-300 ${navClass}`}
+        <nav
+            aria-label="Main navigation"
+            className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-10 py-5 transition-all duration-300 ${navClass}`}
             style={{ fontFamily: "'Cormorant Garamond', serif" }}
         >
             {/* Logo */}
@@ -77,16 +79,16 @@ export default function Navbar({ locale }: { locale: string }) {
                             className={`text-xs uppercase tracking-widest transition-colors ${
                                 loc === currentLocale 
                                     ? "text-amber-500 font-semibold" 
-                                    : (isHome && !scrolled) 
-                                        ? "text-white/40 hover:text-white/80" 
-                                        : "text-stone-400 hover:text-stone-600"
+                                    : isHome
+                                        ? "text-white/40 hover:text-white/80"
+                                        : "text-stone-400 hover:text-stone-700"
                             }`}
                             aria-label={`${t("language")}: ${loc.toUpperCase()}`}
                             aria-current={loc === currentLocale ? "true" : undefined}
                         >
                             {loc}
                         </Link>
-                        {i < locales.length - 1 && <span className={(isHome && !scrolled) ? "text-white/20 text-xs" : "text-stone-300 text-xs"}>·</span>}
+                        {i < locales.length - 1 && <span className={`text-xs ${isHome ? "text-white/20" : "text-stone-300"}`}>·</span>}
                     </span>
                 ))}
             </div>

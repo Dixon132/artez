@@ -7,69 +7,71 @@ declare global {
     }
 }
 
+/**
+ * Guard function that checks if Meta Pixel is enabled.
+ * Returns false when FB_PIXEL_ID is empty or window.fbq is not available.
+ */
+export function isFbEnabled(): boolean {
+    return Boolean(FB_PIXEL_ID) && typeof window !== "undefined" && typeof window.fbq !== "undefined";
+}
+
 // Pageview
 export const fbPageview = () => {
-    if (typeof window.fbq !== 'undefined') {
-        window.fbq('track', 'PageView');
-    }
+    if (!isFbEnabled()) return;
+    window.fbq('track', 'PageView');
 };
 
-// Ver contenido (producto)
+// ViewContent — includes content_ids, content_name, value, currency
 export const fbViewContent = (product: any) => {
-    if (typeof window.fbq !== 'undefined') {
-        window.fbq('track', 'ViewContent', {
-            content_ids: [product.id],
-            content_name: product.name,
-            content_type: 'product',
-            value: Number(product.base_price),
-            currency: 'USD'
-        });
-    }
+    if (!isFbEnabled()) return;
+    window.fbq('track', 'ViewContent', {
+        content_ids: [product.id],
+        content_name: product.name,
+        content_type: 'product',
+        value: Number(product.base_price),
+        currency: 'USD'
+    });
 };
 
-// Agregar al carrito
+// AddToCart — includes content_ids, content_name, content_type, value, currency, quantity
 export const fbAddToCart = (product: any, quantity: number, total: number) => {
-    if (typeof window.fbq !== 'undefined') {
-        window.fbq('track', 'AddToCart', {
-            content_ids: [product.id],
-            content_name: product.name,
-            content_type: 'product',
-            value: total,
-            currency: 'USD',
-            quantity: quantity
-        });
-    }
+    if (!isFbEnabled()) return;
+    window.fbq('track', 'AddToCart', {
+        content_ids: [product.id],
+        content_name: product.name,
+        content_type: 'product',
+        value: total,
+        currency: 'USD',
+        quantity: quantity
+    });
 };
 
-// Iniciar checkout
+// InitiateCheckout — includes value and num_items
 export const fbInitiateCheckout = (cart: any) => {
-    if (typeof window.fbq !== 'undefined') {
-        window.fbq('track', 'InitiateCheckout', {
-            content_ids: cart.items.map((item: any) => item.product_id),
-            value: cart.total,
-            currency: 'USD',
-            num_items: cart.items.length
-        });
-    }
+    if (!isFbEnabled()) return;
+    window.fbq('track', 'InitiateCheckout', {
+        content_ids: cart.items.map((item: any) => item.product_id),
+        value: cart.total,
+        currency: 'USD',
+        num_items: cart.items.length
+    });
 };
 
-// Compra completada
+// Purchase — includes value and content_ids
 export const fbPurchase = (order: any) => {
-    if (typeof window.fbq !== 'undefined') {
-        window.fbq('track', 'Purchase', {
-            content_ids: order.items.map((item: any) => item.product_id),
-            value: Number(order.total_price),
-            currency: 'USD',
-            num_items: order.items.length
-        });
-    }
+    if (!isFbEnabled()) return;
+    window.fbq('track', 'Purchase', {
+        content_ids: order.items.map((item: any) => item.product_id),
+        value: Number(order.total_price),
+        currency: 'USD',
+        num_items: order.items.length
+    });
 };
 
-// Búsqueda
+// Search
 export const fbSearch = (searchTerm: string) => {
-    if (typeof window.fbq !== 'undefined') {
-        window.fbq('track', 'Search', {
-            search_string: searchTerm
-        });
-    }
+    if (!isFbEnabled()) return;
+    window.fbq('track', 'Search', {
+        search_string: searchTerm
+    });
 };
