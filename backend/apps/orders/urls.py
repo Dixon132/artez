@@ -1,10 +1,12 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CartViewSet, OrderViewSet, ShippingZoneViewSet, CouponViewSet
+from .views import CartViewSet, OrderViewSet, ShippingZoneViewSet, CouponViewSet, CountryViewSet, ContinentViewSet
 
 router = DefaultRouter()
 router.register(r'shipping-zones', ShippingZoneViewSet, basename='shippingzone')
 router.register(r'coupons', CouponViewSet, basename='coupon')
+router.register(r'countries', CountryViewSet, basename='country')
+router.register(r'continents', ContinentViewSet, basename='continent')
 
 # ==============================
 # 🛒 CART URLS

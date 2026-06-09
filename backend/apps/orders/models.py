@@ -7,12 +7,18 @@ from apps.products.models import Product, Option, OptionValue, TimeStampedModel
 # ==============================
 
 class ShippingZone(TimeStampedModel):
-    name = models.CharField(max_length=100) # e.g., "Europa", "Norteamérica"
+    name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    extra_per_item = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     continent = models.ForeignKey('Continent', on_delete=models.SET_NULL, null=True, blank=True, related_name='zones')
 
     def __str__(self):
-        return f"{self.name} (${self.price})"
+        return f"{self.name} (${self.price} + ${self.extra_per_item}/item)"
+
+    def calculate_shipping(self, item_count):
+        if item_count <= 0:
+            return 0
+        return float(self.price) + max(0, item_count - 1) * float(self.extra_per_item)
 
 
 class Continent(TimeStampedModel):
@@ -26,7 +32,7 @@ class Continent(TimeStampedModel):
 class Country(TimeStampedModel):
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=3, unique=True)
-    shipping_zone = models.ForeignKey(ShippingZone, on_delete=models.CASCADE, related_name='countries')
+    shipping_zone = models.ForeignKey(ShippingZone, on_delete=models.SET_NULL, null=True, blank=True, related_name='countries')
 
     class Meta:
         verbose_name_plural = 'countries'

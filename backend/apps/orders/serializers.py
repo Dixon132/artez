@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Cart, CartItem, CartItemOption, Order, OrderItem, OrderItemOption, ShippingZone, Coupon
+from .models import Cart, CartItem, CartItemOption, Order, OrderItem, OrderItemOption, ShippingZone, Coupon, Continent, Country
 from apps.products.models import (
     Product, Option, OptionValue,
     ProductTranslation, OptionTranslation, OptionValueTranslation,
@@ -125,10 +125,35 @@ class AddToCartSerializer(serializers.Serializer):
 # 📦 ORDER SERIALIZERS
 # ==============================
 
+class CountrySerializer(serializers.ModelSerializer):
+    zone_name = serializers.CharField(source='shipping_zone.name', read_only=True, default=None)
+    zone_id = serializers.IntegerField(source='shipping_zone.id', read_only=True, default=None)
+
+    class Meta:
+        model = Country
+        fields = ['id', 'name', 'code', 'shipping_zone', 'zone_name', 'zone_id']
+
+
 class ShippingZoneSerializer(serializers.ModelSerializer):
+    countries = CountrySerializer(many=True, read_only=True)
+    country_count = serializers.SerializerMethodField()
+    continent_name = serializers.CharField(source='continent.name', read_only=True, default=None)
+
     class Meta:
         model = ShippingZone
-        fields = '__all__'
+        fields = ['id', 'name', 'price', 'extra_per_item', 'continent', 'continent_name', 'countries', 'country_count', 'created_at', 'updated_at']
+
+    def get_country_count(self, obj):
+        return obj.countries.count()
+
+
+class ContinentSerializer(serializers.ModelSerializer):
+    zones = ShippingZoneSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Continent
+        fields = ['id', 'name', 'code', 'zones', 'created_at']
+
 
 class CouponSerializer(serializers.ModelSerializer):
     class Meta:
@@ -153,33 +178,21 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    """Serializer completo de orden"""
     items = OrderItemSerializer(many=True, read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    country_name = serializers.CharField(source='country.name', read_only=True, default=None)
 
     class Meta:
         model = Order
-        fields = ['id', 'email', 'full_name', 'address', 'total_price', 'shipping_zone', 'shipping_cost', 'coupon', 'discount_applied', 'status', 'status_display', 'created_at', 'items']
+        fields = ['id', 'email', 'full_name', 'address', 'total_price', 'country', 'country_name', 'shipping_zone', 'shipping_cost', 'coupon', 'discount_applied', 'status', 'status_display', 'created_at', 'items']
 
 
 class CreateOrderSerializer(serializers.Serializer):
-    """
-    Serializer para crear orden desde carrito
-    
-    Ejemplo de uso:
-    POST /api/orders/create
-    {
-        "session_id": "abc123",
-        "email": "cliente@example.com",
-        "full_name": "Juan Pérez",
-        "address": "Calle Falsa 123, La Paz, Bolivia"
-    }
-    """
     session_id = serializers.CharField(max_length=255)
     email = serializers.EmailField()
     full_name = serializers.CharField(max_length=255)
     address = serializers.CharField()
-    shipping_zone_id = serializers.IntegerField(required=False, allow_null=True)
+    country_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     coupon_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 

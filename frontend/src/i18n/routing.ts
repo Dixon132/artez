@@ -32,6 +32,11 @@ export const routing = defineRouting({
             es: "/pagar",
             fr: "/paiement",
         },
+        "/checkout/success": {
+            en: "/checkout/success",
+            es: "/pagar/success",
+            fr: "/paiement/success",
+        },
         "/contact": {
             en: "/contact",
             es: "/contacto",

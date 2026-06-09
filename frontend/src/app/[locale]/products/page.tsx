@@ -21,7 +21,7 @@ async function fetchProducts(locale: string): Promise<any[]> {
         });
         if (!res.ok) return [];
         const data = await res.json();
-        return Array.isArray(data) ? data : [];
+        return Array.isArray(data) ? data : data.results ?? [];
     } catch {
         return [];
     }

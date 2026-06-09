@@ -6,11 +6,12 @@ from rest_framework.response import Response
 from rest_framework import status, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db import transaction
-from .models import Cart, CartItem, CartItemOption, Order, OrderItem, OrderItemOption, ShippingZone, Coupon
+from django.utils import timezone
+from .models import Cart, CartItem, CartItemOption, Order, OrderItem, OrderItemOption, ShippingZone, Coupon, Continent, Country
 from .serializers import (
     CartSerializer, AddToCartSerializer, 
     OrderSerializer, CreateOrderSerializer, UpdateOrderStatusSerializer,
-    ShippingZoneSerializer, CouponSerializer
+    ShippingZoneSerializer, CouponSerializer, CountrySerializer, ContinentSerializer
 )
 from apps.products.models import Product, Option, OptionValue
 
@@ -258,25 +259,44 @@ class OrderViewSet(ReadOnlyModelViewSet):
             
         shipping_zone = None
         shipping_cost = 0
-        if 'shipping_zone_id' in data and data['shipping_zone_id']:
+        country = None
+        if 'country_code' in data and data['country_code']:
             try:
-                shipping_zone = ShippingZone.objects.get(id=data['shipping_zone_id'])
-                shipping_cost = shipping_zone.price
-                total_price += shipping_cost
-            except ShippingZone.DoesNotExist:
-                pass
+                country = Country.objects.get(code=data['country_code'])
+                if country.shipping_zone:
+                    shipping_zone = country.shipping_zone
+                    item_count = sum(item.quantity for item in cart.items.all())
+                    shipping_cost = shipping_zone.calculate_shipping(item_count)
+                    total_price += shipping_cost
+                else:
+                    return Response(
+                        {'error': 'No hay envío disponible para el país seleccionado'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            except Country.DoesNotExist:
+                return Response(
+                    {'error': 'País no encontrado'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
                 
         coupon = None
         discount_applied = 0
         if 'coupon_code' in data and data['coupon_code']:
             try:
                 coupon = Coupon.objects.get(code=data['coupon_code'], is_active=True)
+                if coupon.expires_at and coupon.expires_at < timezone.now():
+                    return Response(
+                        {'error': 'El cupón ha expirado'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
                 if coupon.discount_type == 'fixed':
                     discount_applied = coupon.discount_value
                 else:
                     discount_applied = (total_price * coupon.discount_value) / 100
                 total_price -= discount_applied
                 if total_price < 0: total_price = 0
+                coupon.times_used += 1
+                coupon.save(update_fields=['times_used'])
             except Coupon.DoesNotExist:
                 pass
 
@@ -286,6 +306,7 @@ class OrderViewSet(ReadOnlyModelViewSet):
             full_name=data['full_name'],
             address=data['address'],
             total_price=total_price,
+            country=country,
             shipping_zone=shipping_zone,
             shipping_cost=shipping_cost,
             coupon=coupon,
@@ -363,6 +384,52 @@ class OrderViewSet(ReadOnlyModelViewSet):
 class ShippingZoneViewSet(ModelViewSet):
     queryset = ShippingZone.objects.all()
     serializer_class = ShippingZoneSerializer
+
+    @action(detail=True, methods=['post'])
+    def add_countries(self, request, pk=None):
+        zone = self.get_object()
+        country_ids = request.data.get('country_ids', [])
+        if not country_ids:
+            return Response({'error': 'Se requiere country_ids'}, status=status.HTTP_400_BAD_REQUEST)
+        countries = Country.objects.filter(id__in=country_ids, continent=zone.continent)
+        count = countries.update(shipping_zone=zone)
+        return Response({'message': f'{count} países asignados a la zona'})
+
+    @action(detail=True, methods=['post'])
+    def remove_countries(self, request, pk=None):
+        zone = self.get_object()
+        country_ids = request.data.get('country_ids', [])
+        if not country_ids:
+            return Response({'error': 'Se requiere country_ids'}, status=status.HTTP_400_BAD_REQUEST)
+        count = Country.objects.filter(id__in=country_ids, shipping_zone=zone).update(shipping_zone=None)
+        return Response({'message': f'{count} países removidos de la zona'})
+
+
+class CountryViewSet(ReadOnlyModelViewSet):
+    queryset = Country.objects.all()
+    serializer_class = CountrySerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['name', 'code']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        continent = self.request.query_params.get('continent')
+        zone = self.request.query_params.get('zone')
+        unassigned = self.request.query_params.get('unassigned')
+        if continent:
+            qs = qs.filter(shipping_zone__continent__code=continent)
+        if zone:
+            qs = qs.filter(shipping_zone_id=zone)
+        if unassigned == 'true':
+            qs = qs.filter(shipping_zone__isnull=True)
+        return qs
+
+
+class ContinentViewSet(ReadOnlyModelViewSet):
+    queryset = Continent.objects.all()
+    serializer_class = ContinentSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'code']
     
 class CouponViewSet(ModelViewSet):
     queryset = Coupon.objects.all()
@@ -399,6 +466,11 @@ class CouponViewSet(ModelViewSet):
         code = request.data.get('code')
         try:
             coupon = Coupon.objects.get(code=code, is_active=True)
+            if coupon.expires_at and coupon.expires_at < timezone.now():
+                return Response(
+                    {'error': 'El cupón ha expirado'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             return Response(CouponSerializer(coupon).data)
         except Coupon.DoesNotExist:
             return Response({'error': 'Cupón inválido o inactivo'}, status=status.HTTP_404_NOT_FOUND)

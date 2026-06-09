@@ -282,7 +282,7 @@ export const ordersApi = {
         email: string;
         full_name: string;
         address: string;
-        shipping_zone_id?: number | null;
+        country_code?: string | null;
         coupon_code?: string | null;
     }) => {
         const res = await fetch(`${API_URL}/orders/create/`, {
@@ -356,6 +356,10 @@ export const shippingZonesApi = {
         const res = await fetch(`${API_URL}/shipping-zones/`);
         return res.json();
     },
+    get: async (id: number) => {
+        const res = await fetch(`${API_URL}/shipping-zones/${id}/`);
+        return res.json();
+    },
     create: async (data: any) => {
         const res = await fetch(`${API_URL}/shipping-zones/`, {
             method: 'POST',
@@ -364,10 +368,70 @@ export const shippingZonesApi = {
         });
         return res.json();
     },
+    update: async (id: number, data: any) => {
+        const res = await fetch(`${API_URL}/shipping-zones/${id}/`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        return res.json();
+    },
+    patch: async (id: number, data: any) => {
+        const res = await fetch(`${API_URL}/shipping-zones/${id}/`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        return res.json();
+    },
     delete: async (id: number) => {
         const res = await fetch(`${API_URL}/shipping-zones/${id}/`, { method: 'DELETE' });
         return res.ok;
-    }
+    },
+    addCountries: async (id: number, countryIds: number[]) => {
+        const res = await fetch(`${API_URL}/shipping-zones/${id}/add_countries/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ country_ids: countryIds }),
+        });
+        return res.json();
+    },
+    removeCountries: async (id: number, countryIds: number[]) => {
+        const res = await fetch(`${API_URL}/shipping-zones/${id}/remove_countries/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ country_ids: countryIds }),
+        });
+        return res.json();
+    },
+};
+
+export const countriesApi = {
+    list: async (params?: { continent?: string; zone?: string; unassigned?: string; search?: string }) => {
+        const qs = new URLSearchParams();
+        if (params?.continent) qs.set('continent', params.continent);
+        if (params?.zone) qs.set('zone', params.zone);
+        if (params?.unassigned) qs.set('unassigned', params.unassigned);
+        if (params?.search) qs.set('search', params.search);
+        const res = await fetch(`${API_URL}/countries/?${qs.toString()}`);
+        return res.json();
+    },
+    get: async (id: number) => {
+        const res = await fetch(`${API_URL}/countries/${id}/`);
+        return res.json();
+    },
+};
+
+export const continentsApi = {
+    list: async (search?: string) => {
+        const qs = search ? `?search=${search}` : '';
+        const res = await fetch(`${API_URL}/continents/${qs}`);
+        return res.json();
+    },
+    get: async (id: number) => {
+        const res = await fetch(`${API_URL}/continents/${id}/`);
+        return res.json();
+    },
 };
 
 export const couponsApi = {

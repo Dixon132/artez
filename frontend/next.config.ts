@@ -57,6 +57,7 @@ const nextConfig: NextConfig = {
       { source: "/es/carrito", destination: "/es/cart" },
       { source: "/es/nosotros", destination: "/es/about" },
       { source: "/es/pagar", destination: "/es/checkout" },
+      { source: "/es/pagar/success", destination: "/es/checkout/success" },
       { source: "/es/contacto", destination: "/es/contact" },
       // French localized routes
       { source: "/fr/produits", destination: "/fr/products" },
@@ -64,6 +65,7 @@ const nextConfig: NextConfig = {
       { source: "/fr/panier", destination: "/fr/cart" },
       { source: "/fr/a-propos", destination: "/fr/about" },
       { source: "/fr/paiement", destination: "/fr/checkout" },
+      { source: "/fr/paiement/success", destination: "/fr/checkout/success" },
     ];
   },
 };

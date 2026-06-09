@@ -2,19 +2,29 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "@/lib/navigation";
-import { useTranslations } from "next-intl";
-import { cartApi, ordersApi, getSessionId, shippingZonesApi, couponsApi } from "@/services/api";
+import { useTranslations, useLocale } from "next-intl";
+import { cartApi, ordersApi, getSessionId, shippingZonesApi, couponsApi, countriesApi } from "@/services/api";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import { gaBeginCheckout } from "@/lib/analytics";
 import { fbInitiateCheckout } from "@/lib/fbpixel";
 import PaymentModal from "@/components/checkout/PaymentModal";
 
-const shippingCountries = [
-    "United States", "Canada", "United Kingdom", "Germany", "France",
-    "Spain", "Italy", "Netherlands", "Belgium", "Switzerland",
-    "Australia", "Japan", "Brazil", "Argentina", "Chile",
-    "Colombia", "Peru", "Mexico", "Bolivia"
-] as const;
+interface CountryOption {
+    id: number;
+    name: string;
+    code: string;
+    shipping_zone: number | null;
+    zone_name: string | null;
+    zone_id: number | null;
+}
+
+interface ShippingZone {
+    id: number;
+    name: string;
+    price: number;
+    extra_per_item: number;
+    continent: number | null;
+}
 
 interface AddressFormData {
     street: string;
@@ -33,6 +43,7 @@ export function formatAddress(data: AddressFormData): string {
 export default function CheckoutPage() {
     const router = useRouter();
     const t = useTranslations("checkout");
+    const locale = useLocale();
     const [cart, setCart] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -49,24 +60,46 @@ export default function CheckoutPage() {
     });
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
     const [showPaymentModal, setShowPaymentModal] = useState(false);
-    
-    const [shippingZones, setShippingZones] = useState<any[]>([]);
-    const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
+
+    const [allCountries, setAllCountries] = useState<CountryOption[]>([]);
+    const [selectedCountryObj, setSelectedCountryObj] = useState<CountryOption | null>(null);
+    const [selectedZone, setSelectedZone] = useState<ShippingZone | null>(null);
     const [couponCode, setCouponCode] = useState("");
     const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
     const [couponError, setCouponError] = useState("");
 
     useEffect(() => {
         loadCart();
-        loadShippingZones();
+        loadCountries();
     }, []);
 
-    const loadShippingZones = async () => {
+    const loadCountries = async () => {
         try {
-            const res = await shippingZonesApi.list();
-            setShippingZones(res.results || res);
+            const res = await countriesApi.list();
+            const countries = (res.results || res) as CountryOption[];
+            setAllCountries(countries);
         } catch (e) {
-            console.error("Error loading shipping zones", e);
+            console.error("Error loading countries", e);
+        }
+    };
+
+    const handleCountryChange = async (code: string) => {
+        handleAddressChange("country", code);
+        setSelectedCountryObj(null);
+        setSelectedZone(null);
+
+        const country = allCountries.find(c => c.code === code);
+        if (!country) return;
+
+        setSelectedCountryObj(country);
+
+        if (!country.shipping_zone) return;
+
+        try {
+            const zone = await shippingZonesApi.get(country.shipping_zone);
+            setSelectedZone(zone);
+        } catch (e) {
+            console.error("Error loading zone", e);
         }
     };
 
@@ -92,8 +125,12 @@ export default function CheckoutPage() {
         return acc + itemPrice * item.quantity;
     }, 0) || 0;
 
-    const shippingCost = selectedZoneId ? Number(shippingZones.find((z:any)=>z.id == selectedZoneId)?.price || 0) : 0;
-    
+    const totalItems = cart?.items.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0;
+
+    const shippingCost = selectedZone
+        ? Number(selectedZone.price) + Math.max(0, totalItems - 1) * Number(selectedZone.extra_per_item)
+        : 0;
+
     let discountApplied = 0;
     if (appliedCoupon) {
         if (appliedCoupon.discount_type === 'fixed') {
@@ -109,8 +146,7 @@ export default function CheckoutPage() {
         const data = await cartApi.get(sessionId);
         setCart(data);
         setLoading(false);
-        
-        // Track begin checkout
+
         if (data && data.items.length > 0) {
             gaBeginCheckout(data);
             fbInitiateCheckout(data);
@@ -120,19 +156,15 @@ export default function CheckoutPage() {
     const handleConfirmOrder = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validate required address fields
         const errors: Record<string, string> = {};
-        if (!address.street.trim()) {
-            errors.street = t("required");
-        }
-        if (!address.city.trim()) {
-            errors.city = t("required");
-        }
-        if (!address.country.trim()) {
-            errors.country = t("required");
-        }
-        if (!selectedZoneId) {
-            errors.zone = "Por favor selecciona una zona de envío";
+        if (!address.street.trim()) errors.street = t("required");
+        if (!address.city.trim()) errors.city = t("required");
+        if (!address.country.trim()) errors.country = t("required");
+
+        if (!selectedZone) {
+            errors.country = selectedCountryObj
+                ? "No hay envío disponible para este país"
+                : "Selecciona un país con envío disponible";
         }
 
         if (Object.keys(errors).length > 0) {
@@ -140,7 +172,6 @@ export default function CheckoutPage() {
             return;
         }
 
-        // Show payment modal instead of creating order directly
         setShowPaymentModal(true);
     };
 
@@ -155,10 +186,10 @@ export default function CheckoutPage() {
                 email: form.email,
                 full_name: form.full_name,
                 address: formattedAddress,
-                shipping_zone_id: selectedZoneId,
+                country_code: selectedCountryObj?.code || null,
                 coupon_code: appliedCoupon?.code
             });
-            window.location.href = `/checkout/success?order=${response.order.id}`;
+            router.push(`/checkout/success?order=${response.order.id}` as any);
         } catch (error) {
             alert("Error al crear la orden");
         } finally {
@@ -222,7 +253,7 @@ export default function CheckoutPage() {
                         <div className="space-y-6">
                             <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
                                 <h2 className="text-xl font-bold text-stone-900 mb-6">{t("contactInfo")}</h2>
-                                
+
                                 <div className="space-y-5">
                                     <div>
                                         <label className="block text-sm font-medium text-stone-700 mb-2">
@@ -256,8 +287,43 @@ export default function CheckoutPage() {
 
                             <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
                                 <h2 className="text-xl font-bold text-stone-900 mb-6">{t("shippingAddress")}</h2>
-                                
+
                                 <div className="space-y-5">
+                                    {/* Country selection (drives zone) */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-stone-700 mb-2">
+                                            {t("country")} *
+                                        </label>
+                                        <select
+                                            value={address.country}
+                                            onChange={(e) => handleCountryChange(e.target.value)}
+                                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900 bg-white ${validationErrors.country ? "border-red-500" : "border-stone-300"}`}
+                                            required
+                                        >
+                                            <option value="">Selecciona tu país</option>
+                                            {allCountries.map((c) => (
+                                                <option key={c.id} value={c.code}>
+                                                    {c.name} {!c.shipping_zone ? " (no disponible)" : ""}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {validationErrors.country && (
+                                            <p className="mt-1 text-sm text-red-600">{validationErrors.country}</p>
+                                        )}
+                                        {selectedCountryObj?.zone_name && (
+                                            <p className="mt-1 text-sm text-amber-600 font-medium">
+                                                Zona: {selectedCountryObj.zone_name}
+                                                {selectedZone && ` - $${Number(selectedZone.price).toFixed(2)} base + $${Number(selectedZone.extra_per_item).toFixed(2)} por item extra`}
+                                                {totalItems > 1 && ` (${totalItems} items: $${shippingCost.toFixed(2)})`}
+                                            </p>
+                                        )}
+                                        {selectedCountryObj && !selectedCountryObj.shipping_zone && (
+                                            <p className="mt-1 text-sm text-red-600 font-medium">
+                                                Lo sentimos, no hay envío disponible para {selectedCountryObj.name}.
+                                            </p>
+                                        )}
+                                    </div>
+
                                     <div>
                                         <label className="block text-sm font-medium text-stone-700 mb-2">
                                             {t("street")} *
@@ -308,70 +374,19 @@ export default function CheckoutPage() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-stone-700 mb-2">
-                                                Zona de Envío *
-                                            </label>
-                                            <select
-                                                value={selectedZoneId || ""}
-                                                onChange={(e) => {
-                                                    setSelectedZoneId(Number(e.target.value));
-                                                    if (validationErrors.zone) {
-                                                        setValidationErrors(prev => ({...prev, zone: ""}));
-                                                    }
-                                                }}
-                                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900 bg-white ${validationErrors.zone ? "border-red-500" : "border-stone-300"}`}
-                                                required
-                                            >
-                                                <option value="">Selecciona Zona</option>
-                                                {shippingZones.map((zone) => (
-                                                    <option key={zone.id} value={zone.id}>
-                                                        {zone.name} (${zone.price})
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {validationErrors.zone && (
-                                                <p className="mt-1 text-sm text-red-600">{validationErrors.zone}</p>
-                                            )}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-stone-700 mb-2">
-                                                {t("country")} *
-                                            </label>
-                                            <select
-                                                value={address.country}
-                                                onChange={(e) => handleAddressChange("country", e.target.value)}
-                                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900 bg-white ${validationErrors.country ? "border-red-500" : "border-stone-300"}`}
-                                                required
-                                            >
-                                                <option value="">{t("country")}</option>
-                                                {shippingCountries.map((country) => (
-                                                    <option key={country} value={country}>
-                                                        {country}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {validationErrors.country && (
-                                                <p className="mt-1 text-sm text-red-600">{validationErrors.country}</p>
-                                            )}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-stone-700 mb-2">
-                                                {t("postalCode")}
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={address.postalCode}
-                                                onChange={(e) => handleAddressChange("postalCode", e.target.value)}
-                                                className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900"
-                                                maxLength={20}
-                                            />
-                                        </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-stone-700 mb-2">
+                                            {t("postalCode")}
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={address.postalCode}
+                                            onChange={(e) => handleAddressChange("postalCode", e.target.value)}
+                                            className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900"
+                                            maxLength={20}
+                                        />
                                     </div>
-                                    
+
                                     <div className="pt-4 border-t border-stone-100">
                                         <label className="block text-sm font-medium text-stone-700 mb-2">
                                             Código de Descuento (Opcional)
@@ -428,13 +443,13 @@ export default function CheckoutPage() {
 
                         {/* Right column: Summary */}
                         <div className="lg:sticky lg:top-8 lg:self-start">
-                            <OrderSummary 
-                                cart={cart} 
-                                customerData={{ ...form, address: formatAddress(address) }} 
+                            <OrderSummary
+                                cart={cart}
+                                customerData={{ ...form, address: formatAddress(address) }}
                                 shippingCost={shippingCost}
                                 discountApplied={discountApplied}
                             />
-                            
+
                             <button
                                 type="submit"
                                 disabled={submitting}
