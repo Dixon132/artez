@@ -93,7 +93,7 @@ export default function FinancePage() {
         
         if (sortedDates.length === 0) {
             return (
-                <div className="flex items-center justify-center h-64 text-stone-400">
+                <div className="flex items-center justify-center h-64 text-[#999]">
                     No hay datos para mostrar
                 </div>
             );
@@ -173,10 +173,10 @@ export default function FinancePage() {
     return (
         <div className="p-8">
             <div className="flex items-center justify-between mb-8">
-                <h1 className="text-3xl font-black text-stone-900">Finanzas</h1>
+                <h1 className="text-3xl font-black text-[#111]">Finanzas</h1>
                 <button
                     onClick={() => setModalOpen(true)}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors"
+                    className="px-4 py-2 bg-[#111] hover:bg-[#C4612E] text-white font-medium rounded-lg transition-colors"
                 >
                     + Nueva Transacción
                 </button>
@@ -191,32 +191,32 @@ export default function FinancePage() {
                 />
                 <button 
                     onClick={() => { setPage(1); fetchData(); }}
-                    className="px-6 py-2 bg-stone-200 hover:bg-stone-300 font-medium rounded-lg transition-colors"
+                    className="px-6 py-2 bg-[#e2ded9] hover:bg-[#d8d4cf] font-medium rounded-lg transition-colors"
                 >
                     Buscar
                 </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-                    <p className="text-stone-500 text-sm font-medium mb-1">Total Ingresos</p>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-[#e8e4df]">
+                    <p className="text-[#777] text-sm font-medium mb-1">Total Ingresos</p>
                     <p className="text-3xl font-bold text-green-600">${summary.ingresos.toFixed(2)}</p>
                 </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-                    <p className="text-stone-500 text-sm font-medium mb-1">Total Egresos</p>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-[#e8e4df]">
+                    <p className="text-[#777] text-sm font-medium mb-1">Total Egresos</p>
                     <p className="text-3xl font-bold text-red-600">${summary.egresos.toFixed(2)}</p>
                 </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-                    <p className="text-stone-500 text-sm font-medium mb-1">Balance General</p>
-                    <p className={`text-3xl font-bold ${summary.balance >= 0 ? 'text-amber-600' : 'text-red-600'}`}>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-[#e8e4df]">
+                    <p className="text-[#777] text-sm font-medium mb-1">Balance General</p>
+                    <p className={`text-3xl font-bold ${summary.balance >= 0 ? 'text-[#111]' : 'text-red-600'}`}>
                         ${summary.balance.toFixed(2)}
                     </p>
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 mb-8">
+            <div className="bg-white rounded-xl shadow-sm border border-[#e8e4df] p-6 mb-8">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold text-stone-800">Evolución Financiera</h2>
+                    <h2 className="text-xl font-bold text-[#111]">Evolución Financiera</h2>
                     <div className="flex gap-2">
                         {(['week', 'month', 'year'] as Period[]).map((p) => (
                             <button
@@ -224,8 +224,8 @@ export default function FinancePage() {
                                 onClick={() => setPeriod(p)}
                                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                                     period === p
-                                        ? 'bg-amber-500 text-white'
-                                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                                        ? 'bg-[#111] text-white'
+                                        : 'bg-[#f5f2ef] text-[#555] hover:bg-[#e8e4df]'
                                 }`}
                             >
                                 {p === 'week' ? '1 Semana' : p === 'month' ? '1 Mes' : '1 Año'}
@@ -236,46 +236,46 @@ export default function FinancePage() {
                 <div className="flex items-center gap-6 mb-4">
                     <div className="flex items-center gap-2">
                         <div className="w-4 h-1 bg-green-600 rounded"></div>
-                        <span className="text-sm text-stone-600">Ingresos</span>
+                        <span className="text-sm text-[#555]">Ingresos</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-4 h-1 bg-red-600 rounded"></div>
-                        <span className="text-sm text-stone-600">Egresos</span>
+                        <span className="text-sm text-[#555]">Egresos</span>
                     </div>
                 </div>
                 {renderChart()}
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-                <div className="p-6 border-b border-stone-200">
-                    <h2 className="text-xl font-bold text-stone-800">Historial de Transacciones</h2>
+            <div className="bg-white rounded-xl shadow-sm border border-[#e8e4df] overflow-hidden">
+                <div className="p-6 border-b border-[#e8e4df]">
+                    <h2 className="text-xl font-bold text-[#111]">Historial de Transacciones</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-stone-50 border-b border-stone-200">
+                        <thead className="bg-[#faf9f8] border-b border-[#e8e4df]">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">ID</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Fecha</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Tipo</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Descripción</th>
-                                <th className="px-6 py-4 text-right text-xs font-semibold text-stone-500 uppercase">Monto</th>
-                                <th className="px-6 py-4 text-right text-xs font-semibold text-stone-500 uppercase">Acciones</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-[#777] uppercase">ID</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-[#777] uppercase">Fecha</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-[#777] uppercase">Tipo</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-[#777] uppercase">Descripción</th>
+                                <th className="px-6 py-4 text-right text-xs font-semibold text-[#777] uppercase">Monto</th>
+                                <th className="px-6 py-4 text-right text-xs font-semibold text-[#777] uppercase">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-stone-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-8 text-center text-stone-500">Cargando...</td>
+                                    <td colSpan={6} className="px-6 py-8 text-center text-[#777]">Cargando...</td>
                                 </tr>
                             ) : transactions.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-8 text-center text-stone-500">No hay transacciones registradas</td>
+                                    <td colSpan={6} className="px-6 py-8 text-center text-[#777]">No hay transacciones registradas</td>
                                 </tr>
                             ) : (
                                 transactions.map((t: any) => (
-                                    <tr key={t.id} className="hover:bg-stone-50 transition-colors">
-                                        <td className="px-6 py-4 text-sm text-stone-500">#{t.id}</td>
-                                        <td className="px-6 py-4 text-sm text-stone-800">
+                                    <tr key={t.id} className="hover:bg-[#faf9f8] transition-colors">
+                                        <td className="px-6 py-4 text-sm text-[#777]">#{t.id}</td>
+                                        <td className="px-6 py-4 text-sm text-[#111]">
                                             {new Date(t.created_at).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4">
@@ -285,7 +285,7 @@ export default function FinancePage() {
                                                 {t.type === 'ingreso' ? 'Ingreso' : 'Egreso'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-stone-800">{t.description}</td>
+                                        <td className="px-6 py-4 text-sm text-[#111]">{t.description}</td>
                                         <td className={`px-6 py-4 text-sm font-bold text-right ${
                                             t.type === 'ingreso' ? 'text-green-600' : 'text-red-600'
                                         }`}>
@@ -314,8 +314,8 @@ export default function FinancePage() {
 
             {modalOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-                        <h3 className="text-xl font-bold text-stone-900 mb-4">Nueva Transacción</h3>
+                    <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+                        <h3 className="text-xl font-bold text-[#111] mb-4">Nueva Transacción</h3>
                         <form onSubmit={handleCreate} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-stone-700 mb-1">Tipo</label>
@@ -326,7 +326,7 @@ export default function FinancePage() {
                                         className={`px-4 py-2 rounded-lg border-2 transition-colors ${
                                             form.type === 'ingreso'
                                                 ? 'border-green-500 bg-green-50 text-green-700'
-                                                : 'border-stone-200 text-stone-600'
+                                                : 'border-[#e8e4df] text-[#555]'
                                         }`}
                                     >
                                         Ingreso
@@ -337,7 +337,7 @@ export default function FinancePage() {
                                         className={`px-4 py-2 rounded-lg border-2 transition-colors ${
                                             form.type === 'egreso'
                                                 ? 'border-red-500 bg-red-50 text-red-700'
-                                                : 'border-stone-200 text-stone-600'
+                                                : 'border-[#e8e4df] text-[#555]'
                                         }`}
                                     >
                                         Egreso
@@ -351,7 +351,7 @@ export default function FinancePage() {
                                     step="0.01"
                                     value={form.amount}
                                     onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                    className="w-full px-3 py-2 border border-[#e2ded9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111]"
                                     placeholder="0.00"
                                     required
                                 />
@@ -361,7 +361,7 @@ export default function FinancePage() {
                                 <textarea
                                     value={form.description}
                                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                    className="w-full px-3 py-2 border border-[#e2ded9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111]"
                                     rows={3}
                                     placeholder="Ej: Pago de materiales, Venta de producto..."
                                     required
@@ -371,13 +371,13 @@ export default function FinancePage() {
                                 <button
                                     type="button"
                                     onClick={() => setModalOpen(false)}
-                                    className="flex-1 px-4 py-2 text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"
+                                    className="flex-1 px-4 py-2 text-stone-700 hover:bg-[#f5f2ef] rounded-lg transition-colors"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors"
+                                    className="flex-1 px-4 py-2 bg-[#111] hover:bg-[#C4612E] text-white font-medium rounded-lg transition-colors"
                                 >
                                     Crear
                                 </button>
@@ -389,14 +389,14 @@ export default function FinancePage() {
 
             {deleteConfirm && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-                        <h3 className="text-xl font-bold text-stone-900 mb-4">Confirmar Eliminación</h3>
-                        <p className="text-stone-600 mb-2">
+                    <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+                        <h3 className="text-xl font-bold text-[#111] mb-4">Confirmar Eliminación</h3>
+                        <p className="text-[#555] mb-2">
                             ¿Estás seguro de eliminar esta transacción?
                         </p>
-                        <div className="bg-stone-50 rounded-lg p-4 mb-6">
-                            <div className="text-sm text-stone-500">Transacción #{deleteConfirm.id}</div>
-                            <div className="font-medium text-stone-900">{deleteConfirm.description}</div>
+                        <div className="bg-[#faf9f8] rounded-lg p-4 mb-6">
+                            <div className="text-sm text-[#777]">Transacción #{deleteConfirm.id}</div>
+                            <div className="font-medium text-[#111]">{deleteConfirm.description}</div>
                             <div className={`font-bold ${deleteConfirm.type === 'ingreso' ? 'text-green-600' : 'text-red-600'}`}>
                                 {deleteConfirm.type === 'ingreso' ? '+' : '-'}${deleteConfirm.amount}
                             </div>
@@ -407,7 +407,7 @@ export default function FinancePage() {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setDeleteConfirm(null)}
-                                className="flex-1 px-4 py-2 text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"
+                                className="flex-1 px-4 py-2 text-stone-700 hover:bg-[#f5f2ef] rounded-lg transition-colors"
                             >
                                 Cancelar
                             </button>
@@ -416,7 +416,7 @@ export default function FinancePage() {
                                 disabled={deleteCountdown > 0}
                                 className={`flex-1 px-4 py-2 font-medium rounded-lg transition-colors ${
                                     deleteCountdown > 0
-                                        ? 'bg-stone-300 text-stone-500 cursor-not-allowed'
+                                        ? 'bg-stone-300 text-[#777] cursor-not-allowed'
                                         : 'bg-red-500 hover:bg-red-600 text-white'
                                 }`}
                             >

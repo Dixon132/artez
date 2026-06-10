@@ -4,6 +4,7 @@ import { couponsApi } from "@/services/api";
 import { Ticket, Plus, Trash2, CheckCircle, XCircle, AlertCircle, Copy, Calendar } from "lucide-react";
 import Pagination from "@/components/admin/Pagination";
 import SearchBar from "@/components/admin/SearchBar";
+import toast from 'react-hot-toast';
 
 type CouponStatus = 'valid' | 'expiring' | 'expired' | 'inactive';
 
@@ -57,7 +58,7 @@ export default function CouponsPage() {
 
     const copyCode = (code: string) => {
         navigator.clipboard.writeText(code);
-        alert(`Código "${code}" copiado al portapapeles`);
+        toast.success(`Código "${code}" copiado al portapapeles`);
     };
 
     const getCouponStatus = (coupon: any): { status: CouponStatus; label: string } => {
@@ -76,9 +77,9 @@ export default function CouponsPage() {
     const getStatusStyles = (status: CouponStatus) => {
         switch (status) {
             case 'valid': return 'bg-green-100 text-green-700 border-green-200';
-            case 'expiring': return 'bg-amber-100 text-amber-700 border-amber-200';
+            case 'expiring': return 'bg-[#f5f2ef] text-[#111] border-amber-200';
             case 'expired': return 'bg-red-100 text-red-700 border-red-200';
-            case 'inactive': return 'bg-stone-100 text-stone-500 border-stone-200';
+            case 'inactive': return 'bg-[#f5f2ef] text-[#777] border-[#e8e4df]';
         }
     };
 
@@ -99,12 +100,12 @@ export default function CouponsPage() {
         <div className="p-8">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-black text-stone-900">Cupones de Descuento</h1>
-                    <p className="text-sm text-stone-500 mt-1">Gestiona cupones de fidelización para tus clientes</p>
+                    <h1 className="text-3xl font-black text-[#111]">Cupones de Descuento</h1>
+                    <p className="text-sm text-[#777] mt-1">Gestiona cupones de fidelización para tus clientes</p>
                 </div>
                 <button
                     onClick={() => setModalOpen(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-colors shadow-lg shadow-amber-200"
+                    className="flex items-center gap-2 px-6 py-3 bg-[#111] hover:bg-[#C4612E] text-white font-bold rounded-xl transition-colors shadow-lg shadow-amber-200"
                 >
                     <Plus className="w-5 h-5" />
                     Crear Cupón
@@ -120,49 +121,49 @@ export default function CouponsPage() {
                 />
                 <button 
                     onClick={() => { setPage(1); loadCoupons(); }}
-                    className="px-6 py-2 bg-stone-200 hover:bg-stone-300 font-medium rounded-lg transition-colors"
+                    className="px-6 py-2 bg-[#e2ded9] hover:bg-[#d8d4cf] font-medium rounded-lg transition-colors"
                 >
                     Buscar
                 </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-stone-200">
+                <div className="bg-white p-5 rounded-xl shadow-sm border border-[#e8e4df]">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-green-100 rounded-lg">
                             <CheckCircle className="w-5 h-5 text-green-600" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-stone-900">{validCoupons.length}</p>
-                            <p className="text-sm text-stone-500">Vigentes</p>
+                            <p className="text-3xl font-serif tracking-tight text-[#111]">{validCoupons.length}</p>
+                            <p className="text-sm text-[#777]">Vigentes</p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-stone-200">
+                <div className="bg-white p-5 rounded-xl shadow-sm border border-[#e8e4df]">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-amber-100 rounded-lg">
-                            <AlertCircle className="w-5 h-5 text-amber-600" />
+                        <div className="p-2 bg-[#f5f2ef] rounded-lg">
+                            <AlertCircle className="w-5 h-5 text-[#111]" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-stone-900">{expiringCoupons.length}</p>
-                            <p className="text-sm text-stone-500">Por Vencer</p>
+                            <p className="text-3xl font-serif tracking-tight text-[#111]">{expiringCoupons.length}</p>
+                            <p className="text-sm text-[#777]">Por Vencer</p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-stone-200">
+                <div className="bg-white p-5 rounded-xl shadow-sm border border-[#e8e4df]">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-red-100 rounded-lg">
                             <XCircle className="w-5 h-5 text-red-600" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-stone-900">{expiredCoupons.length}</p>
-                            <p className="text-sm text-stone-500">Expirados / Inactivos</p>
+                            <p className="text-3xl font-serif tracking-tight text-[#111]">{expiredCoupons.length}</p>
+                            <p className="text-sm text-[#777]">Expirados / Inactivos</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {loading && <div className="text-center py-8 text-stone-500">Cargando...</div>}
+            {loading && <div className="text-center py-8 text-[#777]">Cargando...</div>}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {coupons.map((coupon: any) => {
@@ -170,10 +171,10 @@ export default function CouponsPage() {
                     return (
                         <div
                             key={coupon.id}
-                            className={`bg-white rounded-2xl border-2 overflow-hidden transition-all hover:shadow-lg ${
+                            className={`bg-white rounded-xl border-2 overflow-hidden transition-all hover:shadow-lg ${
                                 status === 'expired' || status === 'inactive'
-                                    ? 'border-stone-200 opacity-60'
-                                    : 'border-stone-200 hover:border-amber-300'
+                                    ? 'border-[#e8e4df] opacity-60'
+                                    : 'border-[#e8e4df] hover:border-amber-300'
                             }`}
                         >
                             <div className={`px-4 py-3 border-b ${getStatusStyles(status)} flex items-center justify-between`}>
@@ -187,12 +188,12 @@ export default function CouponsPage() {
                             <div className="p-5">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-2">
-                                        <Ticket className="w-5 h-5 text-amber-500" />
-                                        <span className="text-xl font-black text-stone-900 tracking-wider">{coupon.code}</span>
+                                        <Ticket className="w-5 h-5 text-[#111]" />
+                                        <span className="text-xl font-black text-[#111] tracking-wider">{coupon.code}</span>
                                     </div>
                                     <button
                                         onClick={() => copyCode(coupon.code)}
-                                        className="p-2 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                                        className="p-2 text-[#999] hover:text-[#111] hover:bg-amber-50 rounded-lg transition-colors"
                                         title="Copiar código"
                                     >
                                         <Copy className="w-4 h-4" />
@@ -201,14 +202,14 @@ export default function CouponsPage() {
 
                                 <div className="space-y-2 mb-4">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-sm text-stone-500">Descuento</span>
-                                        <span className="text-lg font-bold text-amber-600">
+                                        <span className="text-sm text-[#777]">Descuento</span>
+                                        <span className="text-lg font-bold text-[#111]">
                                             {coupon.discount_type === 'percent' ? `${coupon.discount_value}%` : `$${coupon.discount_value}`}
                                         </span>
                                     </div>
                                     {coupon.expires_at && (
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm text-stone-500">Vence</span>
+                                            <span className="text-sm text-[#777]">Vence</span>
                                             <span className="text-sm font-medium text-stone-700 flex items-center gap-1">
                                                 <Calendar className="w-3 h-3" />
                                                 {new Date(coupon.expires_at).toLocaleDateString('es-ES')}
@@ -216,8 +217,8 @@ export default function CouponsPage() {
                                         </div>
                                     )}
                                     <div className="flex items-center justify-between">
-                                        <span className="text-sm text-stone-500">Estado</span>
-                                        <span className={`text-sm font-medium ${coupon.times_used > 0 ? 'text-stone-400' : 'text-green-600'}`}>
+                                        <span className="text-sm text-[#777]">Estado</span>
+                                        <span className={`text-sm font-medium ${coupon.times_used > 0 ? 'text-[#999]' : 'text-green-600'}`}>
                                             {coupon.times_used > 0 ? 'Canjeado' : 'Disponible'}
                                         </span>
                                     </div>
@@ -238,8 +239,8 @@ export default function CouponsPage() {
 
             {coupons.length === 0 && !loading && (
                 <div className="text-center py-16">
-                    <Ticket className="w-16 h-16 text-stone-300 mx-auto mb-4" />
-                    <p className="text-stone-500">No hay cupones creados</p>
+                    <Ticket className="w-16 h-16 text-[#ccc] mx-auto mb-4" />
+                    <p className="text-[#777]">No hay cupones creados</p>
                 </div>
             )}
 
@@ -247,8 +248,8 @@ export default function CouponsPage() {
 
             {modalOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-                        <h3 className="text-xl font-bold text-stone-900 mb-4">Crear Nuevo Cupón</h3>
+                    <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+                        <h3 className="text-xl font-bold text-[#111] mb-4">Crear Nuevo Cupón</h3>
                         <form onSubmit={handleCreate} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-stone-700 mb-1">
@@ -258,7 +259,7 @@ export default function CouponsPage() {
                                     type="text"
                                     value={form.code}
                                     onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 uppercase tracking-wider font-mono"
+                                    className="w-full px-3 py-2 border border-[#e2ded9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111] uppercase tracking-wider font-mono"
                                     placeholder="Se genera aleatoriamente si se deja vacío"
                                 />
                             </div>
@@ -271,8 +272,8 @@ export default function CouponsPage() {
                                         onClick={() => setForm({ ...form, discount_type: 'percent' })}
                                         className={`px-4 py-2 rounded-lg border-2 transition-colors ${
                                             form.discount_type === 'percent'
-                                                ? 'border-amber-500 bg-amber-50 text-amber-700'
-                                                : 'border-stone-200 text-stone-600'
+                                                ? 'border-[#111] bg-amber-50 text-[#111]'
+                                                : 'border-[#e8e4df] text-[#555]'
                                         }`}
                                     >
                                         Porcentaje (%)
@@ -282,8 +283,8 @@ export default function CouponsPage() {
                                         onClick={() => setForm({ ...form, discount_type: 'fixed' })}
                                         className={`px-4 py-2 rounded-lg border-2 transition-colors ${
                                             form.discount_type === 'fixed'
-                                                ? 'border-amber-500 bg-amber-50 text-amber-700'
-                                                : 'border-stone-200 text-stone-600'
+                                                ? 'border-[#111] bg-amber-50 text-[#111]'
+                                                : 'border-[#e8e4df] text-[#555]'
                                         }`}
                                     >
                                         Fijo ($)
@@ -301,11 +302,11 @@ export default function CouponsPage() {
                                         step="0.01"
                                         value={form.discount_value}
                                         onChange={(e) => setForm({ ...form, discount_value: e.target.value })}
-                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                        className="w-full px-3 py-2 border border-[#e2ded9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111]"
                                         placeholder={form.discount_type === 'percent' ? '15' : '50.00'}
                                         required
                                     />
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400">
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#999]">
                                         {form.discount_type === 'percent' ? '%' : '$'}
                                     </span>
                                 </div>
@@ -316,7 +317,7 @@ export default function CouponsPage() {
                                 <select
                                     value={form.expires_in_months}
                                     onChange={(e) => setForm({ ...form, expires_in_months: e.target.value })}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                    className="w-full px-3 py-2 border border-[#e2ded9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111]"
                                 >
                                     <option value="3">3 meses</option>
                                     <option value="6">6 meses</option>
@@ -329,13 +330,13 @@ export default function CouponsPage() {
                                 <button
                                     type="button"
                                     onClick={() => setModalOpen(false)}
-                                    className="flex-1 px-4 py-2 text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"
+                                    className="flex-1 px-4 py-2 text-stone-700 hover:bg-[#f5f2ef] rounded-lg transition-colors"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors"
+                                    className="flex-1 px-4 py-2 bg-[#111] hover:bg-[#C4612E] text-white font-medium rounded-lg transition-colors"
                                 >
                                     Crear Cupón
                                 </button>

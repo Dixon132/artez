@@ -149,7 +149,7 @@ export default function TranslationsPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-light mb-8 text-stone-800">Traducciones</h1>
+      <h1 className="text-3xl font-light mb-8 text-[#111]">Traducciones</h1>
 
       <div className="flex gap-4 items-center mb-6">
         <SearchBar 
@@ -160,14 +160,14 @@ export default function TranslationsPage() {
         />
         <button 
           onClick={() => { setPage(1); loadData(); }}
-          className="px-6 py-2 bg-stone-200 hover:bg-stone-300 font-medium rounded-lg transition-colors"
+          className="px-6 py-2 bg-[#e2ded9] hover:bg-[#d8d4cf] font-medium rounded-lg transition-colors"
         >
           Buscar
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-stone-200">
+      <div className="flex gap-2 mb-6 border-b border-[#e8e4df]">
         {[
           { key: 'products', label: 'Productos' },
           { key: 'categories', label: 'Categorías' },
@@ -179,8 +179,8 @@ export default function TranslationsPage() {
             onClick={() => setActiveTab(tab.key as any)}
             className={`px-4 py-2 font-light transition-colors ${
               activeTab === tab.key
-                ? 'border-b-2 border-amber-600 text-amber-600'
-                : 'text-stone-600 hover:text-stone-800'
+                ? 'border-b-2 border-amber-600 text-[#111]'
+                : 'text-[#555] hover:text-[#111]'
             }`}
           >
             {tab.label}
@@ -193,21 +193,21 @@ export default function TranslationsPage() {
         {getItems().map((item: any) => {
           const itemTranslations = getItemTranslations(item.id);
           return (
-            <div key={item.id} className="bg-white rounded-lg shadow-sm border border-stone-200 p-6">
-              <h3 className="text-lg font-medium text-stone-800 mb-4">{item.name}</h3>
+            <div key={item.id} className="bg-white rounded-lg shadow-sm border border-[#e8e4df] p-6">
+              <h3 className="text-lg font-medium text-[#111] mb-4">{item.name}</h3>
               
               <div className="grid grid-cols-3 gap-4">
                 {LANGUAGES.map((lang) => {
                   const translation = itemTranslations.find((t: any) => t.language === lang.code);
                   return (
-                    <div key={lang.code} className="border border-stone-200 rounded-lg p-4">
+                    <div key={lang.code} className="border border-[#e8e4df] rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-stone-600">{lang.name}</span>
+                        <span className="text-sm font-medium text-[#555]">{lang.name}</span>
                         {translation ? (
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(translation)}
-                              className="text-amber-600 hover:text-amber-700 text-sm"
+                              className="text-[#111] hover:text-[#111] text-sm"
                             >
                               Editar
                             </button>
@@ -231,7 +231,7 @@ export default function TranslationsPage() {
                         <div className="text-sm text-stone-700">
                           <p className="font-medium">{translation.name}</p>
                           {translation.description && (
-                            <p className="text-xs text-stone-500 mt-1 line-clamp-2">{translation.description}</p>
+                            <p className="text-xs text-[#777] mt-1 line-clamp-2">{translation.description}</p>
                           )}
                         </div>
                       )}
@@ -250,7 +250,7 @@ export default function TranslationsPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-light mb-4 text-stone-800">
+            <h2 className="text-xl font-light mb-4 text-[#111]">
               {editingTranslation ? 'Editar' : 'Nueva'} Traducción
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -260,7 +260,7 @@ export default function TranslationsPage() {
                   type="text"
                   value={LANGUAGES.find(l => l.code === formData.language)?.name || ''}
                   disabled
-                  className="w-full px-3 py-2 border border-stone-300 rounded-lg bg-stone-50"
+                  className="w-full px-3 py-2 border border-[#e2ded9] rounded-lg bg-[#faf9f8]"
                 />
               </div>
               <div>
@@ -269,7 +269,7 @@ export default function TranslationsPage() {
                   type="text"
                   value={formData.name || ''}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-[#e2ded9] rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -279,7 +279,7 @@ export default function TranslationsPage() {
                   <textarea
                     value={formData.description || ''}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-[#e2ded9] rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                     rows={4}
                     required
                   />
@@ -289,7 +289,7 @@ export default function TranslationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-stone-300 rounded-lg text-stone-700 hover:bg-stone-50"
+                  className="flex-1 px-4 py-2 border border-[#e2ded9] rounded-lg text-stone-700 hover:bg-[#faf9f8]"
                 >
                   Cancelar
                 </button>

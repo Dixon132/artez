@@ -16,9 +16,10 @@ class ShippingZone(TimeStampedModel):
         return f"{self.name} (${self.price} + ${self.extra_per_item}/item)"
 
     def calculate_shipping(self, item_count):
+        from decimal import Decimal
         if item_count <= 0:
-            return 0
-        return float(self.price) + max(0, item_count - 1) * float(self.extra_per_item)
+            return Decimal('0.00')
+        return self.price + Decimal(str(max(0, item_count - 1))) * self.extra_per_item
 
 
 class Continent(TimeStampedModel):

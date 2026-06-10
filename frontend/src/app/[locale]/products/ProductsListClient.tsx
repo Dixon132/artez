@@ -1,11 +1,28 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/lib/navigation";
-import { productsApi } from "@/services/api";
+import { productsApi, getAbsoluteMediaUrl } from "@/services/api";
 import { gaViewItemList } from "@/lib/analytics";
 import { fbPageview } from "@/lib/fbpixel";
+
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
+
+function getImg(img: any) {
+    if (!img) return null;
+    const url = img.image || img;
+    if (!url) return null;
+    return url.startsWith("http") ? url : `${BACKEND}${url}`;
+}
+
+/** Truncate a string to maxLen chars, appending "…" if cut. */
+function excerpt(text: string | undefined | null, maxLen = 80): string {
+    if (!text) return "";
+    const cleaned = text.replace(/\s+/g, " ").trim();
+    if (cleaned.length <= maxLen) return cleaned;
+    return cleaned.slice(0, maxLen).trimEnd() + "…";
+}
 
 export default function ProductsListClient() {
     const t = useTranslations("products");
@@ -15,13 +32,14 @@ export default function ProductsListClient() {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
+    const [view, setView] = useState<"grid" | "slider">("grid");
+    const [sliderIdx, setSliderIdx] = useState(0);
     const [hoveredId, setHoveredId] = useState<number | null>(null);
     const [activeImages, setActiveImages] = useState<Record<number, number>>({});
     const lastLoadedProducts = useRef<any[]>([]);
+    const sliderRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        loadProducts();
-    }, [locale]);
+    useEffect(() => { loadProducts(); }, [locale]);
 
     const loadProducts = async () => {
         setLoading(true);
@@ -31,14 +49,8 @@ export default function ProductsListClient() {
             const data = response.results || response;
             setProducts(data);
             lastLoadedProducts.current = data;
-
-            // Track view item list
-            if (data.length > 0) {
-                gaViewItemList(data);
-                fbPageview();
-            }
+            if (data.length > 0) { gaViewItemList(data); fbPageview(); }
         } catch {
-            // On failure, show last loaded content or error state
             if (lastLoadedProducts.current.length > 0) {
                 setProducts(lastLoadedProducts.current);
             } else {
@@ -49,106 +61,423 @@ export default function ProductsListClient() {
         }
     };
 
+    // Cards visible at once (1.8 on desktop) — the 0.8 of the next card peeks
+    const CARDS_VISIBLE = 1.8;
+
+    const sliderPrev = useCallback(
+        () => setSliderIdx(i => Math.max(0, i - 1)),
+        []
+    );
+    const sliderNext = useCallback(
+        () => setSliderIdx(i => Math.min(products.length - 1, i + 1)),
+        [products.length]
+    );
+
+    // Progress: 0 → 1
+    const sliderProgress = products.length <= 1
+        ? 1
+        : sliderIdx / (products.length - 1);
+
     return (
-        <main className="min-h-screen bg-stone-50" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
+        <main style={{ minHeight: "100vh", background: "#fff", fontFamily: "'DM Sans', sans-serif" }}>
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
-                .card-img { transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
-                .card-wrap:hover .card-img { transform: scale(1.08); }
-                .card-overlay { transition: opacity 0.4s ease; }
-                .card-wrap:hover .card-overlay { opacity: 1 !important; }
-                .card-info { transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
-                .card-wrap:hover .card-info { transform: translateY(0) !important; }
-                .card-cta { transition: opacity 0.3s ease 0.1s, transform 0.35s cubic-bezier(0.34,1.56,0.64,1) 0.1s; }
-                .card-wrap:hover .card-cta { opacity: 1 !important; transform: translateY(0) !important; }
-                .card-border { transition: border-color 0.3s ease; }
-                .card-wrap:hover .card-border { border-color: rgb(217 119 6) !important; }
-                @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-                .anim-item { opacity: 0; animation: fadeUp 0.6s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
-                .stagger-1 { animation-delay: 0.05s; }
-                .stagger-2 { animation-delay: 0.12s; }
-                .stagger-3 { animation-delay: 0.19s; }
-                .stagger-4 { animation-delay: 0.26s; }
-                .stagger-5 { animation-delay: 0.33s; }
-                .stagger-6 { animation-delay: 0.40s; }
+                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Inter:wght@800&display=swap');
+
+                /* ── Catalog header ── */
+                .cat-header {
+                    padding: 120px 48px 0;
+                    max-width: 1400px;
+                    margin: 0 auto;
+                }
+                .cat-eyebrow {
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 10px;
+                    font-weight: 500;
+                    letter-spacing: 0.22em;
+                    text-transform: uppercase;
+                    color: #a8a29e;
+                    margin-bottom: 16px;
+                }
+                .cat-title {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-weight: 300;
+                    font-size: clamp(52px, 8vw, 110px);
+                    line-height: 0.9;
+                    letter-spacing: -0.02em;
+                    color: #111;
+                    margin-bottom: 32px;
+                }
+                .cat-divider {
+                    border: none;
+                    border-top: 1px solid #e8e4df;
+                    margin: 0;
+                }
+                .cat-toolbar {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 18px 0;
+                }
+                .cat-count {
+                    font-size: 11px;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                    color: #a8a29e;
+                }
+                .view-toggle {
+                    display: flex;
+                    gap: 12px;
+                    align-items: center;
+                }
+                .view-btn {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    padding: 4px;
+                    color: #c4bfba;
+                    transition: color 0.2s;
+                    display: flex;
+                    align-items: center;
+                }
+                .view-btn.active { color: #111; }
+                .view-btn:hover { color: #111; }
+
+                /* ── GRID VIEW ── */
+                .grid-container {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 1px;
+                    background: #e8e4df;
+                }
+                @media (max-width: 1024px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
+                @media (max-width: 640px) { .grid-container { grid-template-columns: 1fr; } }
+
+                .grid-item {
+                    background: #fff;
+                    display: block;
+                    text-decoration: none;
+                    cursor: pointer;
+                    overflow: hidden;
+                    position: relative;
+                }
+                .grid-img-wrap {
+                    overflow: hidden;
+                    aspect-ratio: 3/4;
+                    background: #f5f2ef;
+                    position: relative;
+                }
+                .grid-img {
+                    width: 100%; height: 100%;
+                    object-fit: cover;
+                    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    display: block;
+                    position: absolute;
+                    inset: 0;
+                }
+                .grid-item:hover .grid-img { transform: scale(1.06); }
+                .grid-img-placeholder {
+                    width: 100%; height: 100%;
+                    display: flex; align-items: center; justify-content: center;
+                    background: #f5f2ef;
+                }
+                .grid-info {
+                    padding: 20px 24px 24px;
+                }
+                .grid-category {
+                    font-size: 10px;
+                    letter-spacing: 0.16em;
+                    text-transform: uppercase;
+                    color: #a8a29e;
+                    margin-bottom: 6px;
+                }
+                .grid-name {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-weight: 400;
+                    font-size: 20px;
+                    color: #111;
+                    line-height: 1.2;
+                    margin-bottom: 6px;
+                    transition: opacity 0.2s;
+                }
+                .grid-item:hover .grid-name { opacity: 0.65; }
+                .grid-excerpt {
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 12px;
+                    font-weight: 300;
+                    color: #a8a29e;
+                    line-height: 1.55;
+                    margin-bottom: 10px;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+                .grid-price {
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 14px;
+                    font-weight: 400;
+                    color: #555;
+                    letter-spacing: 0.02em;
+                }
+
+                /* Hover overlay */
+                .grid-overlay {
+                    position: absolute;
+                    inset: 0;
+                    padding: 20px;
+                    background: transparent; /* No dark background */
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    transition: opacity 0.35s ease;
+                    pointer-events: none;
+                }
+                .grid-item:hover .grid-overlay { opacity: 0; }
+                .grid-item:hover .grid-overlay-bottom { opacity: 1; }
+                
+                .grid-overlay-bottom {
+                    position: absolute;
+                    bottom: 0; left: 0; right: 0;
+                    padding: 24px;
+                    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%);
+                    opacity: 0;
+                    transition: opacity 0.35s ease;
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: space-between;
+                }
+                .grid-overlay-cta {
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 11px;
+                    letter-spacing: 0.14em;
+                    text-transform: uppercase;
+                    color: #fff;
+                }
+
+                /* ── SLIDER VIEW ── */
+                .slider-outer {
+                    position: relative;
+                    padding-top: 48px;
+                }
+
+                /* Side arrow buttons */
+                .slider-arrow {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    z-index: 10;
+                    width: 48px;
+                    height: 48px;
+                    background: #fff;
+                    border: 1px solid #e8e4df;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background 0.22s, border-color 0.22s, box-shadow 0.22s;
+                    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+                }
+                .slider-arrow:hover:not(:disabled) {
+                    background: #111;
+                    border-color: #111;
+                    color: #fff;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+                }
+                .slider-arrow:disabled {
+                    opacity: 0.22;
+                    cursor: not-allowed;
+                }
+                .slider-arrow-left  { left: 8px; }
+                .slider-arrow-right { right: 8px; }
+
+                .slider-container {
+                    position: relative;
+                    overflow: hidden;
+                    /* side padding reveals peeking card + space for arrows */
+                    padding: 0 72px;
+                    --item-width: clamp(280px, calc((100vw - 144px) / 2.8), 350px);
+                }
+                @media (max-width: 768px) {
+                    .slider-container { 
+                        padding: 0 48px; 
+                        --item-width: clamp(240px, calc(100vw - 96px), 320px);
+                    }
+                    .slider-arrow-left  { left: 4px; }
+                    .slider-arrow-right { right: 4px; }
+                }
+
+                .slider-track {
+                    display: flex;
+                    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+                    will-change: transform;
+                }
+
+                .slider-item {
+                    flex-shrink: 0;
+                    width: var(--item-width);
+                    padding-right: 16px;
+                    box-sizing: border-box;
+                    cursor: pointer;
+                    text-decoration: none;
+                    display: block;
+                    transition: opacity 0.35s;
+                }
+                @media (max-width: 768px) {
+                    .slider-item { width: var(--item-width); padding-right: 12px; }
+                }
+
+                .slider-img-wrap {
+                    /* Big portrait 2:3 */
+                    aspect-ratio: 2/3;
+                    overflow: hidden;
+                    background: #f5f2ef;
+                    position: relative;
+                }
+                .slider-img {
+                    width: 100%; height: 100%;
+                    object-fit: cover;
+                    transition: transform 0.75s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    display: block;
+                    position: absolute;
+                    inset: 0;
+                }
+                .slider-item:hover .slider-img { transform: scale(1.04); }
+
+                .slider-info {
+                    padding: 18px 4px 0;
+                }
+                .slider-category {
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 10px;
+                    letter-spacing: 0.16em;
+                    text-transform: uppercase;
+                    color: #a8a29e;
+                    margin-bottom: 6px;
+                }
+                .slider-name {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-size: 24px;
+                    font-weight: 400;
+                    color: #111;
+                    letter-spacing: -0.01em;
+                    line-height: 1.15;
+                    margin-bottom: 8px;
+                    transition: opacity 0.2s;
+                }
+                .slider-item:hover .slider-name { opacity: 0.65; }
+                .slider-excerpt {
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 13px;
+                    font-weight: 300;
+                    color: #a8a29e;
+                    line-height: 1.55;
+                    margin-bottom: 10px;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+                .slider-price {
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 14px;
+                    font-weight: 400;
+                    color: #555;
+                    letter-spacing: 0.02em;
+                }
+
+                /* Progress bar */
+                .slider-progress-wrap {
+                    margin: 28px 72px 0;
+                    height: 2px;
+                    background: #e8e4df;
+                    border-radius: 1px;
+                    overflow: hidden;
+                }
+                @media (max-width: 768px) { .slider-progress-wrap { margin: 20px 48px 0; } }
+                .slider-progress-fill {
+                    height: 100%;
+                    background: #111;
+                    border-radius: 1px;
+                    transition: width 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                /* animations */
+                @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+                .anim-in { animation: fadeUp 0.5s ease forwards; }
+
+                /* Loading */
+                .loader-wrap { min-height: 60vh; display: flex; align-items: center; justify-content: center; }
+                @keyframes spin { to { transform: rotate(360deg); } }
+                .loader-ring {
+                    width: 32px; height: 32px;
+                    border: 1px solid #e8e4df;
+                    border-top-color: #111;
+                    border-radius: 50%;
+                    animation: spin 0.8s linear infinite;
+                }
             `}</style>
 
             {/* ── HEADER ── */}
-            <header className="relative overflow-hidden bg-amber-50 border-b border-amber-100">
-                {/* Decorative large number */}
-                <span
-                    className="absolute -top-6 -right-4 text-amber-100 select-none pointer-events-none leading-none"
-                    style={{ fontSize: "clamp(120px, 20vw, 220px)", fontFamily: "'Cormorant Garamond', serif", fontWeight: 300 }}
-                    aria-hidden
-                >
-                    {!loading && products.length > 0 ? products.length : ""}
-                </span>
-
-                <div className="relative max-w-7xl mx-auto px-8 pt-16 pb-14">
-                    {/* Eyebrow */}
-                    <p
-                        className="text-amber-600 tracking-widest uppercase mb-4"
-                        style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", fontWeight: 500, letterSpacing: "0.2em" }}
-                    >
-                        {t("category")}
-                    </p>
-
-                    <div className="flex items-end justify-between gap-8 flex-wrap">
-                        <h1
-                            className="text-stone-900 leading-none"
-                            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(40px, 7vw, 88px)", fontWeight: 300, letterSpacing: "-0.02em" }}
+            <div className="cat-header">
+                <p className="cat-eyebrow">Artesena — {new Date().getFullYear()}</p>
+                <h1 className="cat-title">
+                    {t("title")}
+                </h1>
+                <hr className="cat-divider" />
+                <div className="cat-toolbar">
+                    <span className="cat-count">
+                        {loading ? "..." : `${products.length} ${t("title").toLowerCase()}`}
+                    </span>
+                    <div className="view-toggle" title="Cambiar vista">
+                        {/* Grid icon */}
+                        <button
+                            className={`view-btn ${view === "grid" ? "active" : ""}`}
+                            onClick={() => setView("grid")}
+                            aria-label="Vista cuadrícula"
                         >
-                            {t("title")}
-                        </h1>
-                    </div>
-
-                    {/* Thin amber rule */}
-                    <div className="mt-10 flex items-center gap-4">
-                        <div className="h-px bg-amber-300 flex-1" />
-                        <span
-                            className="text-amber-500 shrink-0"
-                            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase" }}
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <rect x="0" y="0" width="7" height="7"/>
+                                <rect x="9" y="0" width="7" height="7"/>
+                                <rect x="0" y="9" width="7" height="7"/>
+                                <rect x="9" y="9" width="7" height="7"/>
+                            </svg>
+                        </button>
+                        {/* Slider icon */}
+                        <button
+                            className={`view-btn ${view === "slider" ? "active" : ""}`}
+                            onClick={() => { setView("slider"); setSliderIdx(0); }}
+                            aria-label="Vista slider"
                         >
-                            {loading ? tCommon("loading") : `${products.length} ${products.length !== 1 ? t("title").toLowerCase() : t("title").toLowerCase()}`}
-                        </span>
-                        <div className="h-px bg-amber-300 w-8" />
+                            <svg width="18" height="14" viewBox="0 0 18 14" fill="currentColor">
+                                <rect x="0" y="0" width="11" height="14" rx="0"/>
+                                <rect x="13" y="0" width="5" height="14" rx="0" opacity="0.35"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
-            </header>
+                <hr className="cat-divider" />
+            </div>
 
             {/* ── BODY ── */}
-            <div className="max-w-7xl mx-auto px-8 py-16">
-
+            <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 0 80px" }}>
                 {/* Loading */}
                 {loading && (
-                    <div className="flex flex-col items-center justify-center py-32 gap-5">
-                        <div
-                            className="w-10 h-10 rounded-full border-2 border-amber-200 border-t-amber-500"
-                            style={{ animation: "spin 0.8s linear infinite" }}
-                        />
-                        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-                        <p
-                            className="text-stone-400 tracking-widest uppercase"
-                            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", letterSpacing: "0.16em" }}
-                        >
-                            {tCommon("loading")}
-                        </p>
+                    <div className="loader-wrap">
+                        <div className="loader-ring" />
                     </div>
                 )}
 
-                {/* Error state */}
+                {/* Error */}
                 {!loading && error && (
-                    <div className="flex flex-col items-center justify-center py-32 gap-4">
-                        <svg className="w-16 h-16 text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                        </svg>
-                        <p className="text-stone-500" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "14px" }}>
+                    <div className="loader-wrap" style={{ flexDirection: "column", gap: "20px" }}>
+                        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "13px", color: "#a8a29e", letterSpacing: "0.1em", textTransform: "uppercase" }}>
                             {tCommon("error")}
                         </p>
                         <button
                             onClick={loadProducts}
-                            className="mt-2 px-5 py-2 bg-amber-500 text-white rounded-full hover:bg-amber-600 transition-colors"
-                            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "13px", fontWeight: 500 }}
+                            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", padding: "12px 28px", background: "#111", color: "#fff", border: "none", cursor: "pointer" }}
                         >
                             {tCommon("retry")}
                         </button>
@@ -157,201 +486,203 @@ export default function ProductsListClient() {
 
                 {/* Empty */}
                 {!loading && !error && products.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-32 gap-4">
-                        <svg className="w-16 h-16 text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                        </svg>
-                        <p className="text-stone-400" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "14px" }}>
-                            {tCommon("error")}
+                    <div className="loader-wrap" style={{ flexDirection: "column", gap: "12px" }}>
+                        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "13px", color: "#a8a29e", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                            Sin productos
                         </p>
                     </div>
                 )}
 
-                {/* Grid */}
-                {!loading && !error && products.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {products.map((product, idx) => (
-                            <Link
-                                key={product.id}
-                                href={{ pathname: "/products/[id]" as const, params: { id: String(product.id) } }}
-                                className={`group card-wrap block anim-item stagger-${Math.min(idx + 1, 6)}`}
-                                onMouseEnter={() => setHoveredId(product.id)}
-                                onMouseLeave={() => setHoveredId(null)}
-                            >
-                                <article
-                                    className="card-border rounded-2xl overflow-hidden border border-stone-200 bg-white"
-                                    style={{ boxShadow: hoveredId === product.id ? "0 20px 60px -12px rgba(120,80,0,0.18)" : "0 1px 4px rgba(0,0,0,0.04)", transition: "box-shadow 0.4s ease" }}
-                                >
-                                    {/* Image Carousel */}
-                                    <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-                                        {product.images?.length > 0 ? (
-                                            <>
-                                                <div className="w-full h-full relative">
-                                                    {product.images.map((img: any, imgIdx: number) => (
+                {/* ══ GRID VIEW ══ */}
+                {!loading && !error && products.length > 0 && view === "grid" && (
+                    <div style={{ padding: "2px 0 0" }}>
+                        <div className="grid-container">
+                            {products.map((product, idx) => {
+                                const imgSrc = getImg(product.images?.[0]);
+                                const img2Src = getImg(product.images?.[1]);
+                                const desc = excerpt(product.description || product.short_description, 80);
+                                return (
+                                    <Link
+                                        key={product.id}
+                                        href={{ pathname: "/products/[id]" as const, params: { id: String(product.id) } }}
+                                        className="grid-item anim-in"
+                                        style={{ animationDelay: `${Math.min(idx, 5) * 0.06}s`, animationFillMode: "both" }}
+                                        onMouseEnter={() => setHoveredId(product.id)}
+                                        onMouseLeave={() => setHoveredId(null)}
+                                    >
+                                        <div className="grid-img-wrap">
+                                            {imgSrc ? (
+                                                <>
+                                                    <img
+                                                        src={imgSrc}
+                                                        alt={product.name}
+                                                        className="grid-img"
+                                                        loading={idx < 6 ? "eager" : "lazy"}
+                                                        style={{ opacity: hoveredId === product.id && img2Src ? 0 : 1, transition: "opacity 0.5s ease, transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94)" }}
+                                                    />
+                                                    {img2Src && (
                                                         <img
-                                                            key={imgIdx}
-                                                            src={img.image.startsWith("http") ? img.image : `http://127.0.0.1:8000${img.image}`}
-                                                            alt={`${product.name} ${imgIdx + 1}`}
-                                                            loading={idx < 3 && imgIdx === 0 ? "eager" : "lazy"}
-                                                            className="card-img w-full h-full object-cover absolute inset-0 transition-opacity duration-300"
-                                                            style={{ opacity: (activeImages[product.id] || 0) === imgIdx ? 1 : 0 }}
-                                                            draggable={false}
+                                                            src={img2Src}
+                                                            alt={product.name}
+                                                            className="grid-img"
+                                                            loading="lazy"
+                                                            style={{ opacity: hoveredId === product.id ? 1 : 0, transition: "opacity 0.5s ease, transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94)" }}
                                                         />
-                                                    ))}
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <div className="grid-img-placeholder">
+                                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1">
+                                                        <path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                                                    </svg>
                                                 </div>
-                                                
-                                                {product.images.length > 1 && (
-                                                    <>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                const current = activeImages[product.id] || 0;
-                                                                const prev = current === 0 ? product.images.length - 1 : current - 1;
-                                                                setActiveImages({ ...activeImages, [product.id]: prev });
-                                                            }}
-                                                            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-white z-10"
-                                                        >
-                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                const current = activeImages[product.id] || 0;
-                                                                const next = current === product.images.length - 1 ? 0 : current + 1;
-                                                                setActiveImages({ ...activeImages, [product.id]: next });
-                                                            }}
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-white z-10"
-                                                        >
-                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
-                                                        </button>
-                                                        
-                                                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                                                            {product.images.map((_: any, dotIdx: number) => (
-                                                                <button
-                                                                    key={dotIdx}
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault();
-                                                                        e.stopPropagation();
-                                                                        setActiveImages({ ...activeImages, [product.id]: dotIdx });
-                                                                    }}
-                                                                    className={`w-1.5 h-1.5 rounded-full transition-all ${
-                                                                        (activeImages[product.id] || 0) === dotIdx
-                                                                            ? "bg-white w-4"
-                                                                            : "bg-white/50"
-                                                                    }`}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <div className="w-full h-full bg-gradient-to-br from-amber-50 to-stone-100 flex items-center justify-center">
-                                                <svg className="w-16 h-16 text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                                            )}
+                                            
+                                            {/* Centered text over the first image */}
+                                            <div className="grid-overlay" style={{ opacity: hoveredId === product.id ? 0 : 1, display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+                                                <h3 style={{ 
+                                                    fontFamily: "'Inter', sans-serif", 
+                                                    fontSize: "clamp(2.5rem, 4vw, 4rem)", 
+                                                    fontWeight: 800, 
+                                                    background: "linear-gradient(90deg, #C1121F 0%, #FDF0D5 15%, #E56B6F 30%, #780000 45%, #FDF0D5 60%, #E56B6F 75%, #C1121F 100%)",
+                                                    WebkitBackgroundClip: "text",
+                                                    WebkitTextFillColor: "transparent",
+                                                    color: "transparent",
+                                                    lineHeight: 0.9,
+                                                    letterSpacing: "-0.04em",
+                                                    textTransform: "uppercase",
+                                                    textAlign: "left",
+                                                    margin: 0,
+                                                    padding: "0 24px"
+                                                }}>{product.name}</h3>
+                                            </div>
+
+                                            <div className="grid-overlay-bottom">
+                                                <span className="grid-overlay-cta">{t("viewDetails") || "Ver producto"}</span>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5">
+                                                    <path d="M5 12h14M12 5l7 7-7 7"/>
                                                 </svg>
                                             </div>
-                                        )}
-
-                                        {/* Gradient overlay */}
-                                        <div
-                                            className="card-overlay absolute inset-0 opacity-0"
-                                            style={{ background: "linear-gradient(to top, rgba(28,18,8,0.72) 0%, rgba(28,18,8,0.2) 50%, transparent 100%)" }}
-                                        />
-
-                                        {/* Category pill — top left, always visible */}
-                                        <div className="absolute top-3 left-3">
-                                            <span
-                                                className="inline-block px-3 py-1 bg-white/90 backdrop-blur-sm text-amber-700 rounded-full"
-                                                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "10px", fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase" }}
-                                            >
-                                                {product.category_name}
-                                            </span>
                                         </div>
-
-                                        {/* Price — top right, always visible */}
-                                        <div className="absolute top-3 right-3">
-                                            <span
-                                                className="inline-block px-3 py-1 bg-amber-500 text-white rounded-full"
-                                                style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "15px", fontWeight: 500 }}
-                                            >
-                                                ${product.base_price}
-                                            </span>
+                                        <div className="grid-info">
+                                            <p className="grid-category">{product.category_name}</p>
+                                            <h2 className="grid-name">{product.name}</h2>
+                                            {desc && <p className="grid-excerpt">{desc}</p>}
+                                            <p className="grid-price">${Number(product.base_price).toFixed(2)}</p>
                                         </div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
-                                        {/* Hover CTA text — rises from bottom on hover */}
-                                        <div
-                                            className="card-cta absolute bottom-4 left-0 right-0 flex justify-center opacity-0"
-                                            style={{ transform: "translateY(8px)" }}
+                {/* ══ SLIDER VIEW ══ */}
+                {!loading && !error && products.length > 0 && view === "slider" && (
+                    <div className="slider-outer">
+
+                        {/* Left arrow */}
+                        <button
+                            className="slider-arrow slider-arrow-left"
+                            onClick={sliderPrev}
+                            disabled={sliderIdx === 0}
+                            aria-label="Anterior"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path d="M15 18l-6-6 6-6"/>
+                            </svg>
+                        </button>
+
+                        {/* Right arrow */}
+                        <button
+                            className="slider-arrow slider-arrow-right"
+                            onClick={sliderNext}
+                            disabled={sliderIdx >= products.length - 1}
+                            aria-label="Siguiente"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path d="M9 18l6-6-6-6"/>
+                            </svg>
+                        </button>
+
+                        {/* Track */}
+                        <div className="slider-container" ref={sliderRef}>
+                            <div
+                                className="slider-track"
+                                style={{
+                                    transform: `translateX(calc(-${sliderIdx} * var(--item-width)))`,
+                                }}
+                            >
+                                {products.map((product, idx) => {
+                                    const imgSrc = getImg(product.images?.[0]);
+                                    const desc = excerpt(product.description || product.short_description, 80);
+                                    return (
+                                        <Link
+                                            key={product.id}
+                                            href={{ pathname: "/products/[id]" as const, params: { id: String(product.id) } }}
+                                            className="slider-item anim-in"
+                                            style={{
+                                                animationDelay: `${Math.min(idx, 4) * 0.07}s`,
+                                                animationFillMode: "both",
+                                            }}
                                         >
-                                            <span
-                                                className="inline-flex items-center gap-2 px-5 py-2 bg-amber-500 text-white rounded-full"
-                                                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "12px", fontWeight: 500, letterSpacing: "0.06em" }}
-                                            >
-                                                {t("viewDetails")}
-                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                                </svg>
-                                            </span>
-                                        </div>
-                                    </div>
+                                            <div className="slider-img-wrap">
+                                                {imgSrc ? (
+                                                    <img
+                                                        src={imgSrc}
+                                                        alt={product.name}
+                                                        className="slider-img"
+                                                        loading={idx < 3 ? "eager" : "lazy"}
+                                                    />
+                                                ) : (
+                                                    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f2ef", position: "absolute", inset: 0 }}>
+                                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1">
+                                                            <path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Centered text over the first image */}
+                                                <div className="grid-overlay" style={{ transition: "opacity 0.35s ease", display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+                                                    <h3 style={{ 
+                                                        fontFamily: "'Inter', sans-serif", 
+                                                        fontSize: "clamp(2.5rem, 4vw, 4rem)", 
+                                                        fontWeight: 800, 
+                                                        background: "linear-gradient(90deg, #C1121F 0%, #FDF0D5 15%, #E56B6F 30%, #780000 45%, #FDF0D5 60%, #E56B6F 75%, #C1121F 100%)",
+                                                        WebkitBackgroundClip: "text",
+                                                        WebkitTextFillColor: "transparent",
+                                                        color: "transparent",
+                                                        lineHeight: 0.9,
+                                                        letterSpacing: "-0.04em",
+                                                        textTransform: "uppercase",
+                                                        textAlign: "left",
+                                                        margin: 0,
+                                                        padding: "0 24px"
+                                                    }}>{product.name}</h3>
+                                                </div>
+                                            </div>
+                                            <div className="slider-info">
+                                                <p className="slider-category">{product.category_name}</p>
+                                                <h2 className="slider-name">{product.name}</h2>
+                                                {desc && <p className="slider-excerpt">{desc}</p>}
+                                                <p className="slider-price">${Number(product.base_price).toFixed(2)}</p>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
 
-                                    {/* Card body */}
-                                    <div className="p-5">
-                                        <h3
-                                            className="text-stone-900 mb-1 leading-snug transition-colors duration-200 group-hover:text-amber-700"
-                                            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "22px", fontWeight: 400 }}
-                                        >
-                                            {product.name}
-                                        </h3>
-
-                                        <p
-                                            className="text-stone-500 line-clamp-2"
-                                            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "13px", fontWeight: 300, lineHeight: 1.65 }}
-                                        >
-                                            {product.description}
-                                        </p>
-
-                                        {/* Footer rule + price */}
-                                        <div className="mt-4 pt-4 border-t border-stone-100 flex items-center justify-between">
-                                            <span
-                                                className="text-stone-400"
-                                                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase" }}
-                                            >
-                                                {t("addToCart")}
-                                            </span>
-                                            <span
-                                                className="text-amber-700"
-                                                style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "26px", fontWeight: 500, letterSpacing: "-0.01em" }}
-                                            >
-                                                ${product.base_price}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </article>
-                            </Link>
-                        ))}
+                        {/* Progress bar */}
+                        <div className="slider-progress-wrap">
+                            <div
+                                className="slider-progress-fill"
+                                style={{ width: `${sliderProgress * 100}%` }}
+                            />
+                        </div>
                     </div>
                 )}
             </div>
-
-            {/* ── FOOTER RULE ── */}
-            {!loading && !error && products.length > 0 && (
-                <div className="max-w-7xl mx-auto px-8 pb-16">
-                    <div className="flex items-center gap-4">
-                        <div className="h-px bg-stone-200 flex-1" />
-                        <span
-                            className="text-stone-300 shrink-0"
-                            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "13px", fontStyle: "italic" }}
-                        >
-                            {t("title")}
-                        </span>
-                        <div className="h-px bg-stone-200 flex-1" />
-                    </div>
-                </div>
-            )}
         </main>
     );
 }

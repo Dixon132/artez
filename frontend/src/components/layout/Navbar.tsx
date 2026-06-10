@@ -13,15 +13,15 @@ export default function Navbar({ locale }: { locale: string }) {
     const currentLocale = useLocale();
 
     const [scrolled, setScrolled] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
     const isHome = pathname === "/";
 
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 20);
+        const handleScroll = () => setScrolled(window.scrollY > 40);
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Build the locale-aware href for locale switching
     const getLocaleSwitchHref = (): any => {
         if (pathname === "/products/[id]" && params.id) {
             return { pathname: "/products/[id]" as const, params: { id: String(params.id) } };
@@ -29,69 +29,231 @@ export default function Navbar({ locale }: { locale: string }) {
         return pathname;
     };
 
-    const navClass = isHome
-        ? (scrolled
-            ? "bg-gradient-to-b from-black/60 to-transparent backdrop-blur-[2px]"
-            : "bg-gradient-to-b from-black/30 to-transparent")
-        : "bg-white/70 backdrop-blur-[4px] shadow-sm";
-
-    const textClass = isHome ? "text-white" : "text-stone-900";
-    const textHoverClass = isHome ? "text-white/80 hover:text-amber-400" : "text-stone-700 hover:text-amber-600";
+    const isTransparent = isHome && !scrolled && !menuOpen;
 
     return (
-        <nav
-            aria-label="Main navigation"
-            className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-10 py-5 transition-all duration-300 ${navClass}`}
-            style={{ fontFamily: "'Cormorant Garamond', serif" }}
-        >
-            {/* Logo */}
-            <Link
-                href="/"
-                className={`${textClass} text-2xl font-semibold tracking-widest uppercase transition-colors`}
-                style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: "0.2em" }}
-            >
-                Artesena
-            </Link>
+        <>
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
+                .nav-root {
+                    position: fixed;
+                    top: 0; left: 0; right: 0;
+                    z-index: 100;
+                    transition: background 0.4s ease, border-color 0.4s ease;
+                }
+                .nav-root.solid {
+                    background: #fff;
+                    border-bottom: 1px solid #e8e4df;
+                }
+                .nav-root.transparent {
+                    background: transparent;
+                    border-bottom: 1px solid transparent;
+                }
+                .nav-inner {
+                    display: grid;
+                    grid-template-columns: 1fr auto 1fr;
+                    align-items: center;
+                    padding: 0 40px;
+                    height: 64px;
+                }
+                .nav-left { display: flex; align-items: center; gap: 32px; }
+                .nav-center {}
+                .nav-right { display: flex; align-items: center; justify-content: flex-end; gap: 20px; }
 
-            {/* Navigation links */}
-            <div className="flex items-center gap-10">
-                <Link href="/" className={`${textHoverClass} transition-colors text-sm uppercase tracking-widest`}>
-                    {t("home")}
-                </Link>
-                <Link href="/products" className={`${textHoverClass} transition-colors text-sm uppercase tracking-widest`}>
-                    {t("products")}
-                </Link>
-                <Link href="/cart" className={`${textHoverClass} transition-colors text-sm uppercase tracking-widest flex items-center gap-2`}>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    {t("cart")}
-                </Link>
-            </div>
+                .nav-logo {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-weight: 500;
+                    font-size: 22px;
+                    letter-spacing: 0.25em;
+                    text-transform: uppercase;
+                    text-decoration: none;
+                    transition: color 0.2s;
+                }
+                .nav-link {
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 11px;
+                    font-weight: 400;
+                    letter-spacing: 0.14em;
+                    text-transform: uppercase;
+                    text-decoration: none;
+                    transition: opacity 0.2s;
+                    white-space: nowrap;
+                }
+                .nav-link:hover { opacity: 0.55; }
+                .nav-icon-btn {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    padding: 4px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 11px;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    text-decoration: none;
+                    transition: opacity 0.2s;
+                }
+                .nav-icon-btn:hover { opacity: 0.55; }
+                .locale-dot { font-size: 10px; opacity: 0.3; }
+                .locale-btn {
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 11px;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    text-decoration: none;
+                    transition: opacity 0.2s;
+                }
+                .locale-btn.active { font-weight: 500; }
+                .locale-btn:not(.active) { opacity: 0.4; }
+                .locale-btn:hover { opacity: 1; }
 
-            {/* Language selector - dynamically renders all locales from config */}
-            <div className="flex items-center gap-4" aria-label={t("language")}>
-                {locales.map((loc, i) => (
-                    <span key={loc} className="flex items-center gap-4">
-                        <Link
-                            href={getLocaleSwitchHref()}
-                            locale={loc}
-                            className={`text-xs uppercase tracking-widest transition-colors ${
-                                loc === currentLocale 
-                                    ? "text-amber-500 font-semibold" 
-                                    : isHome
-                                        ? "text-white/40 hover:text-white/80"
-                                        : "text-stone-400 hover:text-stone-700"
-                            }`}
-                            aria-label={`${t("language")}: ${loc.toUpperCase()}`}
-                            aria-current={loc === currentLocale ? "true" : undefined}
+                /* Mobile */
+                @media (max-width: 768px) {
+                    .nav-inner { grid-template-columns: auto 1fr auto; padding: 0 20px; }
+                    .nav-left-links { display: none; }
+                    .nav-right-locale { display: none; }
+                }
+            `}</style>
+
+            <nav className={`nav-root ${isTransparent ? "transparent" : "solid"}`} aria-label="Main navigation">
+                <div className="nav-inner">
+                    {/* LEFT */}
+                    <div className="nav-left">
+                        <button
+                            className="nav-icon-btn"
+                            style={{ color: isTransparent ? "#fff" : "#1c1917" }}
+                            onClick={() => setMenuOpen(!menuOpen)}
+                            aria-label="Menu"
                         >
-                            {loc}
+                            <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+                                <line x1="0" y1="1" x2="18" y2="1" stroke="currentColor" strokeWidth="1.2"/>
+                                <line x1="0" y1="6" x2="18" y2="6" stroke="currentColor" strokeWidth="1.2"/>
+                                <line x1="0" y1="11" x2="18" y2="11" stroke="currentColor" strokeWidth="1.2"/>
+                            </svg>
+                        </button>
+                        <div className="nav-left-links" style={{ display: "flex", gap: "28px" }}>
+                            <Link
+                                href="/products"
+                                className="nav-link"
+                                style={{ color: isTransparent ? "#fff" : "#1c1917" }}
+                            >
+                                {t("products")}
+                            </Link>
+                            <Link
+                                href="/about"
+                                className="nav-link"
+                                style={{ color: isTransparent ? "#fff" : "#1c1917" }}
+                            >
+                                {t("about") || "Nosotros"}
+                            </Link>
+                            <Link
+                                href="/contact"
+                                className="nav-link"
+                                style={{ color: isTransparent ? "#fff" : "#1c1917" }}
+                            >
+                                {t("contact") || "Contacto"}
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* CENTER - Logo */}
+                    <div className="nav-center" style={{ display: "flex", justifyContent: "center" }}>
+                        <Link
+                            href="/"
+                            className="nav-logo"
+                            style={{ color: isTransparent ? "#fff" : "#1c1917" }}
+                        >
+                            Artesena
                         </Link>
-                        {i < locales.length - 1 && <span className={`text-xs ${isHome ? "text-white/20" : "text-stone-300"}`}>·</span>}
-                    </span>
-                ))}
-            </div>
-        </nav>
+                    </div>
+
+                    {/* RIGHT */}
+                    <div className="nav-right">
+                        <div className="nav-right-locale" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            {locales.map((loc, i) => (
+                                <span key={loc} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                    <Link
+                                        href={getLocaleSwitchHref()}
+                                        locale={loc}
+                                        className={`locale-btn ${loc === currentLocale ? "active" : ""}`}
+                                        style={{ color: isTransparent ? "#fff" : "#1c1917" }}
+                                        aria-label={`${t("language")}: ${loc.toUpperCase()}`}
+                                        aria-current={loc === currentLocale ? "true" : undefined}
+                                    >
+                                        {loc.toUpperCase()}
+                                    </Link>
+                                    {i < locales.length - 1 && (
+                                        <span className="locale-dot" style={{ color: isTransparent ? "#fff" : "#1c1917" }}>|</span>
+                                    )}
+                                </span>
+                            ))}
+                        </div>
+                        <Link
+                            href="/cart"
+                            className="nav-icon-btn"
+                            style={{ color: isTransparent ? "#fff" : "#1c1917" }}
+                            aria-label={t("cart")}
+                        >
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
+                                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>
+                            </svg>
+                        </Link>
+                    </div>
+                </div>
+            </nav>
+
+            {/* Full-screen menu overlay */}
+            {menuOpen && (
+                <div
+                    style={{
+                        position: "fixed", inset: 0, zIndex: 99,
+                        background: "#fff",
+                        display: "flex", flexDirection: "column",
+                        paddingTop: "64px",
+                    }}
+                >
+                    <div style={{ padding: "40px 40px 20px", borderBottom: "1px solid #f0ece7" }}>
+                        <button
+                            onClick={() => setMenuOpen(false)}
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex" }}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1917" strokeWidth="1.2">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <nav style={{ padding: "48px 40px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {[
+                            { href: "/", label: t("home") || "Inicio" },
+                            { href: "/products", label: t("products") || "Productos" },
+                            { href: "/about", label: t("about") || "Nosotros" },
+                            { href: "/contact", label: t("contact") || "Contacto" },
+                            { href: "/cart", label: t("cart") || "Carrito" },
+                        ].map(({ href, label }) => (
+                            <Link
+                                key={href}
+                                href={href as any}
+                                onClick={() => setMenuOpen(false)}
+                                style={{
+                                    fontFamily: "'Cormorant Garamond', serif",
+                                    fontSize: "clamp(32px, 6vw, 56px)",
+                                    fontWeight: 300,
+                                    letterSpacing: "-0.01em",
+                                    color: "#1c1917",
+                                    textDecoration: "none",
+                                    lineHeight: 1.15,
+                                    transition: "opacity 0.2s",
+                                }}
+                                className="nav-link-menu"
+                            >
+                                {label}
+                            </Link>
+                        ))}
+                    </nav>
+                </div>
+            )}
+        </>
     );
 }

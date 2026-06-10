@@ -17,7 +17,7 @@ Continent.objects.all().delete()
 print("Creating continents and shipping zones...")
 
 CONTINENTS_DATA = {
-    'south_america': {
+    'SA': {
         'name': 'Sudamérica',
         'zones': {
             'south_america_west': {
@@ -46,7 +46,7 @@ CONTINENTS_DATA = {
             },
         }
     },
-    'north_america': {
+    'NA': {
         'name': 'Norteamérica',
         'zones': {
             'north_america_main': {
@@ -83,7 +83,7 @@ CONTINENTS_DATA = {
             },
         }
     },
-    'europe': {
+    'EU': {
         'name': 'Europa',
         'zones': {
             'europe_iberia': {
@@ -146,7 +146,7 @@ CONTINENTS_DATA = {
             },
         }
     },
-    'asia': {
+    'AS': {
         'name': 'Asia',
         'zones': {
             'asia_east': {
@@ -198,7 +198,7 @@ CONTINENTS_DATA = {
             },
         }
     },
-    'africa': {
+    'AF': {
         'name': 'África',
         'zones': {
             'africa_north': {
@@ -255,7 +255,7 @@ CONTINENTS_DATA = {
             },
         }
     },
-    'oceania': {
+    'OC': {
         'name': 'Oceanía',
         'zones': {
             'oceania_main': {

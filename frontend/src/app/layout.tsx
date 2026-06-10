@@ -4,6 +4,7 @@ import "./globals.css";
 import LenisProvider from "@/components/layout/LenisProvider";
 import { headers } from "next/headers";
 import { defaultLocale } from "@/lib/i18n";
+import { Toaster } from 'react-hot-toast';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -64,6 +65,7 @@ export default async function RootLayout({
         )}
       </head>
       <body className="min-h-full flex flex-col">
+        <Toaster position="bottom-right" />
         <LenisProvider>{children}</LenisProvider>
       </body>
     </html>

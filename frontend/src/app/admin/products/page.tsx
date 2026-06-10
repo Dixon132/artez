@@ -5,6 +5,7 @@ import { productsApi, categoriesApi } from "@/services/api";
 import Pagination from "@/components/admin/Pagination";
 import SearchBar from "@/components/admin/SearchBar";
 import { Package, Plus, Edit, Trash2, Image as ImageIcon, X, Upload, DollarSign, Tag } from "lucide-react";
+import toast from 'react-hot-toast';
 
 const API_URL = 'http://127.0.0.1:8000';
 
@@ -41,6 +42,7 @@ export default function AdminProductsPage() {
         if (prodsRes.count) setTotalPages(Math.ceil(prodsRes.count / 10));
         setCategories(catsRes.results || catsRes);
         setLoading(false);
+        return prods;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -96,14 +98,14 @@ export default function AdminProductsPage() {
         try {
             const result = await productsApi.uploadImage(selectedProduct.id, file);
             if (result.error) {
-                alert(`Error: ${result.error}`);
+                toast.error(`Error: ${result.error}`);
             } else {
-                await loadData();
-                const updated = products.find(p => p.id === selectedProduct.id);
-                setSelectedProduct(updated);
+                const newProds = await loadData();
+                const updated = newProds.find((p: any) => p.id === selectedProduct.id);
+                if (updated) setSelectedProduct(updated);
             }
         } catch (error) {
-            alert('Error al subir imagen');
+            toast.error('Error al subir imagen');
         } finally {
             setLoading(false);
         }
@@ -121,11 +123,16 @@ export default function AdminProductsPage() {
     const handleDeleteImage = async (imageId: number) => {
         if (!confirm("¿Eliminar esta imagen?")) return;
         setLoading(true);
-        await productsApi.deleteImage(selectedProduct.id, imageId);
-        await loadData();
-        const updated = products.find(p => p.id === selectedProduct.id);
-        setSelectedProduct(updated);
-        setLoading(false);
+        try {
+            await productsApi.deleteImage(selectedProduct.id, imageId);
+            const newProds = await loadData();
+            const updated = newProds.find((p: any) => p.id === selectedProduct.id);
+            if (updated) setSelectedProduct(updated);
+        } catch (error) {
+            toast.error('Error al eliminar imagen');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const getImageUrl = (path: string) => {
@@ -137,11 +144,11 @@ export default function AdminProductsPage() {
         <div className="p-8">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-stone-900 flex items-center gap-2">
+                    <h2 className="text-3xl font-serif tracking-tight text-[#111] flex items-center gap-2">
                         <Package className="w-7 h-7" />
                         Productos
                     </h2>
-                    <p className="text-sm text-stone-500 mt-1">{products.length} productos</p>
+                    <p className="text-sm text-[#777] mt-1">{products.length} productos</p>
                 </div>
                 <button
                     onClick={() => {
@@ -149,7 +156,7 @@ export default function AdminProductsPage() {
                         setForm({ name: "", description: "", base_price: "", category: "" });
                         setModalOpen(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-[#C4612E] text-white font-medium rounded-lg transition-colors"
                 >
                     <Plus className="w-5 h-5" />
                     Nuevo Producto
@@ -161,8 +168,8 @@ export default function AdminProductsPage() {
                     onClick={() => setActiveCategory("all")}
                     className={`px-4 py-2 rounded-lg border-2 transition-all whitespace-nowrap ${
                         activeCategory === "all"
-                            ? "bg-amber-500 border-amber-500 text-white shadow-md"
-                            : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
+                            ? "bg-[#111] border-[#111] text-white shadow-md"
+                            : "bg-white border-[#e8e4df] text-[#555] hover:border-[#e2ded9]"
                     }`}
                 >
                     Todos
@@ -173,8 +180,8 @@ export default function AdminProductsPage() {
                         onClick={() => setActiveCategory(String(cat.id))}
                         className={`px-4 py-2 rounded-lg border-2 transition-all whitespace-nowrap ${
                             activeCategory === String(cat.id)
-                                ? "bg-amber-500 border-amber-500 text-white shadow-md"
-                                : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
+                                ? "bg-[#111] border-[#111] text-white shadow-md"
+                                : "bg-white border-[#e8e4df] text-[#555] hover:border-[#e2ded9]"
                         }`}
                     >
                         {cat.name}
@@ -191,18 +198,18 @@ export default function AdminProductsPage() {
                 />
                 <button 
                     onClick={() => { setPage(1); loadData(); }}
-                    className="px-6 py-2 bg-stone-200 hover:bg-stone-300 font-medium rounded-lg transition-colors"
+                    className="px-6 py-2 bg-[#e2ded9] hover:bg-[#d8d4cf] font-medium rounded-lg transition-colors"
                 >
                     Buscar
                 </button>
             </div>
 
-            {loading && <div className="text-center py-8 text-stone-500">Cargando...</div>}
+            {loading && <div className="text-center py-8 text-[#777]">Cargando...</div>}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => (
-                    <div key={product.id} className="bg-white rounded-xl border border-stone-200 overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1">
-                        <div className="aspect-square bg-stone-100 relative group">
+                    <div key={product.id} className="bg-white rounded-xl border border-[#e8e4df] overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1">
+                        <div className="aspect-square bg-[#f5f2ef] relative group">
                             {product.images?.[0] ? (
                                 <img 
                                     src={getImageUrl(product.images[0].image)} 
@@ -210,7 +217,7 @@ export default function AdminProductsPage() {
                                     className="w-full h-full object-cover transition-transform group-hover:scale-105"
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-stone-300">
+                                <div className="w-full h-full flex items-center justify-center text-[#ccc]">
                                     <ImageIcon className="w-16 h-16" />
                                 </div>
                             )}
@@ -228,15 +235,15 @@ export default function AdminProductsPage() {
                         </div>
                         <div className="p-5">
                             <div className="flex items-start justify-between mb-2">
-                                <h3 className="font-semibold text-stone-900 text-lg">{product.name}</h3>
-                                <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full flex items-center gap-1">
+                                <h3 className="font-semibold text-[#111] text-lg">{product.name}</h3>
+                                <span className="px-2 py-1 bg-[#f5f2ef] text-[#111] text-xs font-medium rounded-full flex items-center gap-1">
                                     <Tag className="w-3 h-3" />
                                     {product.category_name}
                                 </span>
                             </div>
-                            <p className="text-sm text-stone-500 mb-4 line-clamp-2">{product.description}</p>
+                            <p className="text-sm text-[#777] mb-4 line-clamp-2">{product.description}</p>
                             <div className="flex items-center justify-between mb-4">
-                                <span className="text-2xl font-bold text-amber-600 flex items-center gap-1">
+                                <span className="text-3xl font-serif tracking-tight text-[#111] flex items-center gap-1">
                                     <DollarSign className="w-5 h-5" />
                                     {product.base_price}
                                 </span>
@@ -244,7 +251,7 @@ export default function AdminProductsPage() {
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => handleEdit(product)}
-                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium rounded-lg transition-colors"
+                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#f5f2ef] hover:bg-[#e8e4df] text-stone-700 text-sm font-medium rounded-lg transition-colors"
                                 >
                                     <Edit className="w-4 h-4" />
                                     Editar
@@ -263,8 +270,8 @@ export default function AdminProductsPage() {
 
             {products.length === 0 && !loading && (
                 <div className="text-center py-16">
-                    <Package className="w-16 h-16 text-stone-300 mx-auto mb-4" />
-                    <p className="text-stone-500">No hay productos</p>
+                    <Package className="w-16 h-16 text-[#ccc] mx-auto mb-4" />
+                    <p className="text-[#777]">No hay productos</p>
                 </div>
             )}
 
@@ -272,12 +279,12 @@ export default function AdminProductsPage() {
 
             {modalOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
+                    <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-stone-900">
+                            <h3 className="text-xl font-bold text-[#111]">
                                 {editingProduct ? "Editar Producto" : "Nuevo Producto"}
                             </h3>
-                            <button onClick={() => setModalOpen(false)} className="text-stone-400 hover:text-stone-600">
+                            <button onClick={() => setModalOpen(false)} className="text-[#999] hover:text-[#555]">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
@@ -288,7 +295,7 @@ export default function AdminProductsPage() {
                                     type="text"
                                     value={form.name}
                                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900"
+                                    className="w-full px-3 py-2 border border-[#e2ded9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111] text-[#111]"
                                     required
                                 />
                             </div>
@@ -297,7 +304,7 @@ export default function AdminProductsPage() {
                                 <textarea
                                     value={form.description}
                                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900"
+                                    className="w-full px-3 py-2 border border-[#e2ded9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111] text-[#111]"
                                     rows={3}
                                     required
                                 />
@@ -305,13 +312,13 @@ export default function AdminProductsPage() {
                             <div>
                                 <label className="block text-sm font-medium text-stone-700 mb-1">Precio Base</label>
                                 <div className="relative">
-                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#999]" />
                                     <input
                                         type="number"
                                         step="0.01"
                                         value={form.base_price}
                                         onChange={(e) => setForm({ ...form, base_price: e.target.value })}
-                                        className="w-full pl-10 pr-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900"
+                                        className="w-full pl-10 pr-3 py-2 border border-[#e2ded9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111] text-[#111]"
                                         required
                                     />
                                 </div>
@@ -321,7 +328,7 @@ export default function AdminProductsPage() {
                                 <select
                                     value={form.category}
                                     onChange={(e) => setForm({ ...form, category: e.target.value })}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-stone-900"
+                                    className="w-full px-3 py-2 border border-[#e2ded9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111] text-[#111]"
                                     required
                                 >
                                     <option value="">Seleccionar...</option>
@@ -334,14 +341,14 @@ export default function AdminProductsPage() {
                                 <button
                                     type="button"
                                     onClick={() => setModalOpen(false)}
-                                    className="flex-1 px-4 py-2 text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"
+                                    className="flex-1 px-4 py-2 text-stone-700 hover:bg-[#f5f2ef] rounded-lg transition-colors"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+                                    className="flex-1 px-4 py-2 bg-[#111] hover:bg-[#C4612E] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
                                 >
                                     {loading ? "Guardando..." : editingProduct ? "Actualizar" : "Crear"}
                                 </button>
@@ -353,31 +360,31 @@ export default function AdminProductsPage() {
 
             {imageModalOpen && selectedProduct && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-xl max-w-3xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-stone-900 flex items-center gap-2">
+                            <h3 className="text-xl font-bold text-[#111] flex items-center gap-2">
                                 <ImageIcon className="w-6 h-6" />
                                 Imágenes de {selectedProduct.name}
                             </h3>
-                            <button onClick={() => setImageModalOpen(false)} className="text-stone-400 hover:text-stone-600">
+                            <button onClick={() => setImageModalOpen(false)} className="text-[#999] hover:text-[#555]">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
 
                         <div
                             className={`mb-6 border-2 border-dashed rounded-xl transition-all ${
-                                dragOver ? "border-amber-500 bg-amber-50" : "border-stone-300"
+                                dragOver ? "border-[#111] bg-amber-50" : "border-[#e2ded9]"
                             }`}
                             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                             onDragLeave={() => setDragOver(false)}
                             onDrop={handleDrop}
                         >
                             <label className="block w-full px-4 py-12 text-center cursor-pointer">
-                                <Upload className={`w-16 h-16 mx-auto mb-3 ${dragOver ? "text-amber-500" : "text-stone-400"}`} />
+                                <Upload className={`w-16 h-16 mx-auto mb-3 ${dragOver ? "text-[#111]" : "text-[#999]"}`} />
                                 <p className="text-lg font-medium text-stone-700 mb-1">
                                     {dragOver ? "Suelta la imagen aquí" : "Arrastra una imagen o haz clic"}
                                 </p>
-                                <p className="text-sm text-stone-500">PNG, JPG hasta 10MB</p>
+                                <p className="text-sm text-[#777]">PNG, JPG hasta 10MB</p>
                                 <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                             </label>
                         </div>
@@ -385,7 +392,7 @@ export default function AdminProductsPage() {
                         {selectedProduct.images?.length > 0 ? (
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {selectedProduct.images.map((img: any) => (
-                                    <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-stone-200 group hover:border-amber-400 transition-all">
+                                    <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-[#e8e4df] group hover:border-[#111] transition-all">
                                         <img 
                                             src={getImageUrl(img.image)} 
                                             alt="" 
@@ -403,7 +410,7 @@ export default function AdminProductsPage() {
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-12 text-stone-400">
+                            <div className="text-center py-12 text-[#999]">
                                 <ImageIcon className="w-16 h-16 mx-auto mb-3" />
                                 <p>No hay imágenes aún</p>
                             </div>

@@ -12,25 +12,25 @@ const sections = [
 
 export default function AdminPage() {
     return (
-        <div className="p-10">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-stone-800 mb-2">Panel de Administración</h1>
-                <p className="text-stone-500">Bienvenido a Artesena Admin</p>
+        <div>
+            <div className="mb-12">
+                <h1 className="text-3xl mb-3">Panel de Administración</h1>
+                <p className="text-[#777] font-light text-lg">Bienvenido a Artesena Admin. Selecciona un módulo para gestionar tu tienda.</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {sections.map((s) => (
                     <Link
                         key={s.href}
                         href={s.href}
-                        className="bg-white rounded-xl p-6 shadow-sm border border-stone-200 hover:border-amber-400 hover:shadow-lg transition-all group"
+                        className="bg-white rounded-xl p-8 border border-[#e8e4df] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:border-[#111] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 group flex flex-col items-start"
                     >
-                        <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-amber-200 transition-colors">
-                            <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={s.icon} />
+                        <div className="w-12 h-12 bg-[#f5f2ef] rounded-lg flex items-center justify-center mb-6 group-hover:bg-[#111] transition-colors duration-300">
+                            <svg className="w-6 h-6 text-[#555] group-hover:text-white transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={s.icon} />
                             </svg>
                         </div>
-                        <div className="font-semibold text-stone-800 group-hover:text-amber-600 transition-colors text-lg mb-1">{s.label}</div>
-                        <div className="text-sm text-stone-400">{s.desc}</div>
+                        <div className="font-serif text-[#111] text-2xl mb-2 tracking-tight">{s.label}</div>
+                        <div className="text-[13px] text-[#777] font-light leading-relaxed">{s.desc}</div>
                     </Link>
                 ))}
             </div>

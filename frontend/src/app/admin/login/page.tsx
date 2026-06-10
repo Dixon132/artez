@@ -34,12 +34,12 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center p-4">
             <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-stone-100 p-8">
                 <div className="text-center mb-10">
-                    <h1 className="text-3xl font-black text-stone-900 tracking-tight">Artesena Admin</h1>
-                    <p className="text-stone-500 mt-2">Ingresa tus credenciales para continuar</p>
+                    <h1 className="text-3xl font-black text-[#111] tracking-tight">Artesena Admin</h1>
+                    <p className="text-[#777] mt-2">Ingresa tus credenciales para continuar</p>
                 </div>
                 
                 {error && (
-                    <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-sm font-medium border border-red-100">
+                    <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100">
                         {error}
                     </div>
                 )}
@@ -51,7 +51,7 @@ export default function LoginPage() {
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full px-5 py-3 rounded-2xl border-2 border-stone-200 focus:border-amber-500 focus:ring-0 outline-none transition-all text-stone-900 bg-stone-50 focus:bg-white"
+                            className="w-full px-5 py-3 rounded-xl border-2 border-[#e8e4df] focus:border-[#111] focus:ring-0 outline-none transition-all text-[#111] bg-[#faf9f8] focus:bg-white"
                             placeholder="admin"
                             required
                         />
@@ -63,7 +63,7 @@ export default function LoginPage() {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-5 py-3 rounded-2xl border-2 border-stone-200 focus:border-amber-500 focus:ring-0 outline-none transition-all text-stone-900 bg-stone-50 focus:bg-white"
+                            className="w-full px-5 py-3 rounded-xl border-2 border-[#e8e4df] focus:border-[#111] focus:ring-0 outline-none transition-all text-[#111] bg-[#faf9f8] focus:bg-white"
                             placeholder="••••••••"
                             required
                         />
@@ -72,7 +72,7 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-4 bg-stone-900 hover:bg-stone-800 text-white rounded-2xl font-bold tracking-wide transition-colors shadow-lg shadow-stone-200 disabled:opacity-70"
+                        className="w-full py-4 bg-stone-900 hover:bg-stone-800 text-white rounded-xl font-bold tracking-wide transition-colors shadow-lg shadow-stone-200 disabled:opacity-70"
                     >
                         {loading ? "Iniciando sesión..." : "Ingresar"}
                     </button>

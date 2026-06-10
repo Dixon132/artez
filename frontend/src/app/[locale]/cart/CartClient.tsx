@@ -41,8 +41,17 @@ export default function CartClient() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#fafaf8]">
-                <div className="w-10 h-10 rounded-full border-2 border-stone-200 border-t-amber-600 animate-spin" />
+            <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fdfcfa" }}>
+                <style>{`
+                    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap');
+                    @keyframes spin { to { transform: rotate(360deg); } }
+                `}</style>
+                <div style={{
+                    width: 40, height: 40, borderRadius: "50%",
+                    border: "2px solid #e8e4df",
+                    borderTopColor: "#C4612E",
+                    animation: "spin 0.8s linear infinite"
+                }} />
             </div>
         );
     }
@@ -60,208 +69,503 @@ export default function CartClient() {
     const secureLabel = locale === "es" ? "Pago 100% Seguro" : locale === "fr" ? "Paiement 100% Sécurisé" : "100% Secure Checkout";
 
     return (
-        <main className="min-h-screen bg-[#faf9f6] font-sans pb-24">
-            {/* ── Premium Full-Width Cover ── */}
-            <header className="relative w-full h-[280px] md:h-[350px] flex items-center justify-start overflow-hidden bg-stone-950 border-b border-amber-950/10">
-                {/* Ambience & glowing lights */}
-                <div className="absolute inset-0 bg-gradient-to-b from-stone-950 via-[#1a120b] to-[#120a05] pointer-events-none" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(217,119,6,0.12)_0%,transparent_60%)] pointer-events-none" />
-                
-                {/* Luxury string lines schema */}
-                <div className="absolute inset-x-0 bottom-0 top-0 opacity-5 bg-[linear-gradient(to_right,rgba(217,119,6,0.1)_1px,transparent_1px)] bg-[size:3.5rem_100%] pointer-events-none" />
+        <main style={{ minHeight: "100vh", background: "#fdfcfa", fontFamily: "'DM Sans', sans-serif", paddingBottom: 80 }}>
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-                <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 w-full pt-8 flex flex-col items-start gap-4">
-                    {/* Category/Context tracking */}
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 backdrop-blur-md">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                        <span className="text-[9px] font-sans font-bold tracking-[0.16em] uppercase text-amber-400">
-                            {tNav("cart")}
+                @keyframes spin { to { transform: rotate(360deg); } }
+                @keyframes fadeUp {
+                    from { opacity: 0; transform: translateY(18px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+
+                .cart-item-row {
+                    background: #fff;
+                    border-bottom: 1px solid #f0ece6;
+                    display: flex;
+                    gap: 28px;
+                    padding: 28px 0;
+                    align-items: flex-start;
+                    animation: fadeUp 0.4s ease both;
+                    transition: background 0.2s;
+                }
+                .cart-item-row:hover { background: #fdfaf7; }
+                .cart-item-row:first-child { border-top: 1px solid #f0ece6; }
+
+                .qty-btn {
+                    width: 32px; height: 32px;
+                    border: 1px solid #d9d2c8;
+                    background: #fff;
+                    cursor: pointer;
+                    display: flex; align-items: center; justify-content: center;
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 14px;
+                    color: #444;
+                    transition: all 0.15s;
+                }
+                .qty-btn:hover:not(:disabled) { border-color: #C4612E; color: #C4612E; background: #fef6f1; }
+                .qty-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+                .remove-btn {
+                    background: none; border: none; cursor: pointer;
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+                    color: #aaa; padding: 4px 0;
+                    transition: color 0.15s;
+                    display: flex; align-items: center; gap: 4px;
+                }
+                .remove-btn:hover { color: #C4612E; }
+
+                .checkout-btn {
+                    width: 100%;
+                    padding: 16px 24px;
+                    background: #111;
+                    color: #fff;
+                    border: none; cursor: pointer;
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 13px; font-weight: 600;
+                    letter-spacing: 0.12em; text-transform: uppercase;
+                    transition: background 0.2s;
+                    display: flex; align-items: center; justify-content: center; gap: 10px;
+                }
+                .checkout-btn:hover { background: #C4612E; }
+
+                .option-chip {
+                    display: inline-flex; align-items: center; gap: 4px;
+                    font-size: 10px; font-family: 'DM Sans', sans-serif;
+                    color: #777; border: 1px solid #e8e4de;
+                    padding: 2px 8px; background: #faf8f5;
+                }
+
+                .summary-panel {
+                    background: #fff;
+                    border: 1px solid #e8e4de;
+                    position: sticky; top: 24px;
+                }
+
+                .explore-btn {
+                    display: inline-flex; align-items: center; gap: 8px;
+                    padding: 14px 32px;
+                    background: #111; color: #fff; border: none; cursor: pointer;
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+                    transition: background 0.2s;
+                }
+                .explore-btn:hover { background: #C4612E; }
+            `}</style>
+
+            {/* ── Editorial Full-Width Header ── */}
+            <header style={{ position: "relative", width: "100%", overflow: "hidden", minHeight: "30vh", display: "flex", alignItems: "center" }}>
+                {/* Background Image */}
+                <Image src="/img/charango.png" alt="Cart Background" fill style={{ objectFit: "cover" }} />
+                {/* Dark Overlay Filter */}
+                <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(17, 17, 17, 0.75)" }} />
+
+                <div style={{ maxWidth: 1200, width: "100%", margin: "0 auto", padding: "40px", position: "relative", zIndex: 1 }}>
+                    {/* Eyebrow label */}
+                    <div style={{
+                        display: "inline-flex", alignItems: "center", gap: 8,
+                        marginBottom: 16
+                    }}>
+                        <div style={{ width: 28, height: 1, background: "rgba(255,255,255,0.4)" }} />
+                        <span style={{
+                            fontFamily: "'DM Sans', sans-serif",
+                            fontSize: 10, fontWeight: 600,
+                            letterSpacing: "0.2em", textTransform: "uppercase",
+                            color: "rgba(255,255,255,0.8)"
+                        }}>
+                            Artesena · {tNav("cart")}
                         </span>
                     </div>
 
-                    {/* Massive Serif Title */}
-                    <h1 className="font-serif text-white text-4xl md:text-6xl font-light tracking-tight leading-tight max-w-4xl drop-shadow-lg flex items-baseline gap-4">
-                        <span>{t("title")}</span>
+                    {/* Title row */}
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 24, flexWrap: "wrap" }}>
+                        <h1 style={{
+                            fontFamily: "'Cormorant Garamond', serif",
+                            fontSize: "clamp(3rem, 6vw, 5.5rem)",
+                            fontWeight: 300,
+                            color: "#fff",
+                            margin: 0,
+                            lineHeight: 1,
+                            letterSpacing: "-0.01em",
+                            textShadow: "0 4px 12px rgba(0,0,0,0.3)"
+                        }}>
+                            {t("title")}
+                        </h1>
                         {!isEmpty && (
-                            <span className="inline-flex items-center justify-center text-xs font-sans font-semibold bg-amber-500/20 border border-amber-500/40 text-amber-300 px-3 py-1 rounded-full backdrop-blur-md">
+                            <span style={{
+                                fontFamily: "'DM Sans', sans-serif",
+                                fontSize: 13, fontWeight: 500,
+                                color: "rgba(255,255,255,0.9)",
+                                letterSpacing: "0.1em",
+                                textTransform: "uppercase",
+                                border: "1px solid rgba(255,255,255,0.3)",
+                                padding: "4px 12px",
+                                borderRadius: "2px"
+                            }}>
                                 {totalItems} {itemLabel}
                             </span>
                         )}
-                    </h1>
+                    </div>
                 </div>
 
-                {/* Transition overlay curve */}
-                <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-[#faf9f6] to-transparent pointer-events-none" />
+                {/* Bottom accent stripe */}
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: "linear-gradient(90deg, #C4612E 0%, #2D1B69 60%, #C4612E 100%)" }} />
             </header>
 
-            <div className="max-w-7xl mx-auto px-6 md:px-8 py-12">
+            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 40px" }}>
                 {isEmpty ? (
-                    <div className="max-w-md mx-auto text-center py-20 bg-white border border-stone-200/60 rounded-[2.5rem] p-8 shadow-xl shadow-stone-100/50">
-                        <div className="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center rounded-full bg-amber-50/50 border border-amber-200/30">
-                            <svg className="w-10 h-10 text-amber-800/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-                            </svg>
-                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full animate-ping opacity-35" />
+                    /* ── Empty State ── */
+                    <div style={{
+                        maxWidth: 480, margin: "80px auto", textAlign: "center",
+                        animation: "fadeIn 0.5s ease"
+                    }}>
+                        {/* Geometric empty icon */}
+                        <div style={{ position: "relative", width: 96, height: 96, margin: "0 auto 32px" }}>
+                            <div style={{
+                                position: "absolute", inset: 0,
+                                border: "1px solid #e8e4de",
+                                transform: "rotate(12deg)"
+                            }} />
+                            <div style={{
+                                position: "absolute", inset: 8,
+                                border: "1px solid #C4612E",
+                                opacity: 0.4,
+                                transform: "rotate(-4deg)"
+                            }} />
+                            <div style={{
+                                position: "absolute", inset: 0,
+                                display: "flex", alignItems: "center", justifyContent: "center"
+                            }}>
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C4612E" strokeWidth={1.2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                                </svg>
+                            </div>
                         </div>
-                        <h3 className="font-serif text-2xl font-medium text-stone-800 mb-2">{t("empty")}</h3>
-                        <p className="text-sm text-stone-500 font-light leading-relaxed mb-8">{t("emptyDescription")}</p>
+
+                        <h3 style={{
+                            fontFamily: "'Cormorant Garamond', serif",
+                            fontSize: 28, fontWeight: 400, color: "#111",
+                            margin: "0 0 12px"
+                        }}>
+                            {t("empty")}
+                        </h3>
+                        <p style={{
+                            fontFamily: "'DM Sans', sans-serif",
+                            fontSize: 14, color: "#888", lineHeight: 1.7,
+                            margin: "0 0 36px"
+                        }}>
+                            {t("emptyDescription")}
+                        </p>
                         <button
                             onClick={() => router.push("/products")}
-                            className="inline-flex items-center justify-center px-8 py-3.5 bg-stone-900 hover:bg-stone-800 active:scale-[0.98] text-white text-sm font-semibold tracking-wide rounded-2xl transition-all duration-200 shadow-xl shadow-stone-900/10"
+                            className="explore-btn"
                         >
-                            {t("viewProducts")}
+                            <span>{t("viewProducts")}</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg>
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-                        {/* ── LEFT: Items List ── */}
-                        <div className="lg:col-span-2 space-y-6">
-                            {cart.items.map((item: any) => {
-                                const itemTotal = (Number(item.product_price) + item.selected_options.reduce((acc: number, opt: any) => acc + Number(opt.extra_price), 0)) * item.quantity;
-                                return (
-                                    <div 
-                                        key={item.id} 
-                                        className="bg-white rounded-[2rem] border border-stone-200/60 p-5 md:p-6 flex flex-col sm:flex-row gap-6 shadow-xl shadow-stone-100/50 hover:shadow-2xl hover:shadow-stone-200/40 transition-all duration-300 relative group"
-                                    >
-                                        {/* Product image rounded container */}
-                                        <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-stone-50 border border-stone-100 shrink-0">
-                                            {item.product_image ? (
-                                                <Image
-                                                    src={getAbsoluteMediaUrl(item.product_image)}
-                                                    alt={item.product_name || "Product image"}
-                                                    fill
-                                                    sizes="(max-width: 640px) 96px, 112px"
-                                                    loading="lazy"
-                                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-stone-300">
-                                                    <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.1-1.34 2-3 2s-3-.9-3-2 1.34-2 3-2 3 .9 3 2zm12-3c0 1.1-1.34 2-3 2s-3-.9-3-2 1.34-2 3-2 3 .9 3 2zM9 10l12-3" />
-                                                    </svg>
-                                                </div>
-                                            )}
-                                        </div>
+                    /* ── Cart Grid ── */
+                    <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr",
+                        gap: 40,
+                        paddingTop: 48
+                    }}>
+                        <div style={{
+                            display: "grid",
+                            gridTemplateColumns: "minmax(0, 1fr) 340px",
+                            gap: 60,
+                            alignItems: "start"
+                        }}
+                            className="cart-grid-responsive"
+                        >
+                            <style>{`
+                                @media (max-width: 900px) {
+                                    .cart-grid-responsive {
+                                        grid-template-columns: 1fr !important;
+                                    }
+                                }
+                            `}</style>
 
-                                        {/* Core info */}
-                                        <div className="flex-1 flex flex-col justify-between py-1">
-                                            <div>
-                                                <h3 className="font-serif text-lg font-medium text-stone-900 group-hover:text-amber-800 transition-colors mb-1">
-                                                    {item.product_name}
-                                                </h3>
-                                                
-                                                {/* Selected Options chips */}
-                                                {item.selected_options.length > 0 && (
-                                                    <div className="flex flex-wrap gap-1.5 mb-3 mt-2">
-                                                        {item.selected_options.map((opt: any) => (
-                                                            <span 
-                                                                key={opt.id}
-                                                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-stone-50 border border-stone-200/50 text-[10px] font-sans font-medium text-stone-500"
-                                                            >
-                                                                <span className="text-stone-400">{opt.option_name}:</span> 
-                                                                <span className="text-stone-700 font-semibold">{opt.value_name}</span>
-                                                                {Number(opt.extra_price) > 0 && (
-                                                                    <span className="text-amber-600 font-bold"> (+${opt.extra_price})</span>
-                                                                )}
-                                                            </span>
-                                                        ))}
+                            {/* ── LEFT: Items List ── */}
+                            <div>
+                                {/* Column headers */}
+                                <div style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "1fr auto",
+                                    paddingBottom: 12,
+                                    borderBottom: "2px solid #111",
+                                    marginBottom: 0
+                                }}>
+                                    <span style={{
+                                        fontFamily: "'DM Sans', sans-serif",
+                                        fontSize: 10, fontWeight: 600,
+                                        letterSpacing: "0.2em", textTransform: "uppercase", color: "#aaa"
+                                    }}>
+                                        Producto
+                                    </span>
+                                    <span style={{
+                                        fontFamily: "'DM Sans', sans-serif",
+                                        fontSize: 10, fontWeight: 600,
+                                        letterSpacing: "0.2em", textTransform: "uppercase", color: "#aaa"
+                                    }}>
+                                        Total
+                                    </span>
+                                </div>
+
+                                {/* Items */}
+                                {cart.items.map((item: any, idx: number) => {
+                                    const itemTotal = (Number(item.product_price) + item.selected_options.reduce((acc: number, opt: any) => acc + Number(opt.extra_price), 0)) * item.quantity;
+                                    return (
+                                        <div
+                                            key={item.id}
+                                            className="cart-item-row"
+                                            style={{ animationDelay: `${idx * 0.07}s` }}
+                                        >
+                                            {/* Product Image */}
+                                            <div style={{
+                                                position: "relative", width: 100, height: 120,
+                                                background: "#f5f3ef",
+                                                flexShrink: 0, overflow: "hidden"
+                                            }}>
+                                                {item.product_image ? (
+                                                    <Image
+                                                        src={getAbsoluteMediaUrl(item.product_image)}
+                                                        alt={item.product_name || "Product image"}
+                                                        fill
+                                                        sizes="100px"
+                                                        loading="lazy"
+                                                        style={{ objectFit: "cover" }}
+                                                    />
+                                                ) : (
+                                                    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth={1}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.1-1.34 2-3 2s-3-.9-3-2 1.34-2 3-2 3 .9 3 2zm12-3c0 1.1-1.34 2-3 2s-3-.9-3-2 1.34-2 3-2 3 .9 3 2zM9 10l12-3" />
+                                                        </svg>
                                                     </div>
                                                 )}
+                                                {/* Small terracotta accent corner */}
+                                                <div style={{
+                                                    position: "absolute", bottom: 0, left: 0,
+                                                    width: 16, height: 3, background: "#C4612E"
+                                                }} />
                                             </div>
 
-                                            {/* Quantity and Actions */}
-                                            <div className="flex items-center justify-between sm:justify-start gap-6 mt-2">
-                                                {/* Gold-ring quantity counter */}
-                                                <div className="inline-flex items-center border border-stone-200 rounded-xl overflow-hidden bg-white shadow-sm">
-                                                    <button
-                                                        onClick={() => handleUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                                                        disabled={item.quantity <= 1}
-                                                        className="w-9 h-9 flex items-center justify-center text-stone-500 hover:bg-amber-50 hover:text-amber-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                                    >
-                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14" /></svg>
-                                                    </button>
-                                                    <span className="min-w-[36px] text-center font-serif text-base font-semibold text-stone-900 border-x border-stone-100 leading-[36px]">
-                                                        {item.quantity}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                                                        className="w-9 h-9 flex items-center justify-center text-stone-500 hover:bg-amber-50 hover:text-amber-700 transition-colors"
-                                                    >
-                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
-                                                    </button>
+                                            {/* Core Info */}
+                                            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 120 }}>
+                                                <div>
+                                                    <h3 style={{
+                                                        fontFamily: "'Cormorant Garamond', serif",
+                                                        fontSize: 18, fontWeight: 500, color: "#111",
+                                                        margin: "0 0 6px", lineHeight: 1.2
+                                                    }}>
+                                                        {item.product_name}
+                                                    </h3>
+
+                                                    {/* Options chips */}
+                                                    {item.selected_options.length > 0 && (
+                                                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                                                            {item.selected_options.map((opt: any) => (
+                                                                <span key={opt.id} className="option-chip">
+                                                                    <span style={{ color: "#aaa" }}>{opt.option_name}:</span>{" "}
+                                                                    <span style={{ color: "#444", fontWeight: 500 }}>{opt.value_name}</span>
+                                                                    {Number(opt.extra_price) > 0 && (
+                                                                        <span style={{ color: "#C4612E", fontWeight: 600 }}> +${opt.extra_price}</span>
+                                                                    )}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
 
-                                                {/* Mini Trash Icon Button */}
-                                                <button
-                                                    onClick={() => handleRemoveItem(item.id)}
-                                                    className="inline-flex items-center gap-1.5 text-xs text-stone-400 hover:text-red-600 transition-colors py-1.5 px-2 rounded-lg hover:bg-red-50/50"
-                                                    aria-label={t("remove")}
-                                                >
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
-                                                    </svg>
-                                                    <span className="font-medium">{t("remove")}</span>
-                                                </button>
+                                                {/* Quantity + Remove */}
+                                                <div style={{ display: "flex", alignItems: "center", gap: 20, marginTop: 16 }}>
+                                                    {/* Qty control */}
+                                                    <div style={{ display: "inline-flex", alignItems: "center", border: "1px solid #d9d2c8" }}>
+                                                        <button
+                                                            className="qty-btn"
+                                                            onClick={() => handleUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                                                            disabled={item.quantity <= 1}
+                                                            aria-label="Decrease quantity"
+                                                        >
+                                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14" /></svg>
+                                                        </button>
+                                                        <span style={{
+                                                            minWidth: 36, textAlign: "center",
+                                                            fontFamily: "'DM Sans', sans-serif",
+                                                            fontSize: 13, fontWeight: 500,
+                                                            color: "#111", lineHeight: "32px",
+                                                            borderLeft: "1px solid #d9d2c8",
+                                                            borderRight: "1px solid #d9d2c8"
+                                                        }}>
+                                                            {item.quantity}
+                                                        </span>
+                                                        <button
+                                                            className="qty-btn"
+                                                            onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                                                            aria-label="Increase quantity"
+                                                        >
+                                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
+                                                        </button>
+                                                    </div>
+
+                                                    <button
+                                                        className="remove-btn"
+                                                        onClick={() => handleRemoveItem(item.id)}
+                                                        aria-label={t("remove")}
+                                                    >
+                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                                                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
+                                                        </svg>
+                                                        <span>{t("remove")}</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Price column */}
+                                            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", minHeight: 120 }}>
+                                                <div style={{ textAlign: "right" }}>
+                                                    <div style={{
+                                                        fontFamily: "'Cormorant Garamond', serif",
+                                                        fontSize: 22, fontWeight: 500,
+                                                        color: "#111"
+                                                    }}>
+                                                        ${itemTotal.toFixed(2)}
+                                                    </div>
+                                                    <div style={{
+                                                        fontFamily: "'DM Sans', sans-serif",
+                                                        fontSize: 11, color: "#aaa", marginTop: 3
+                                                    }}>
+                                                        ${(Number(item.product_price) + item.selected_options.reduce((acc: number, opt: any) => acc + Number(opt.extra_price), 0)).toFixed(2)} {eachLabel}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
+                                    );
+                                })}
+                            </div>
 
-                                        {/* Total price column */}
-                                        <div className="flex sm:flex-col items-baseline sm:items-end justify-between sm:justify-start gap-1 sm:text-right shrink-0 pt-3 sm:pt-1 border-t sm:border-t-0 border-stone-100">
-                                            <span className="text-[10px] font-sans font-bold tracking-widest uppercase text-stone-400 block sm:hidden">Subtotal</span>
-                                            <div className="flex flex-col sm:items-end">
-                                                <span className="font-serif text-2xl font-semibold text-amber-900 tracking-tight">
-                                                    ${itemTotal.toFixed(2)}
-                                                </span>
-                                                <span className="text-[10px] text-stone-400 font-sans mt-0.5">
-                                                    ${(Number(item.product_price) + item.selected_options.reduce((acc: number, opt: any) => acc + Number(opt.extra_price), 0)).toFixed(2)} {eachLabel}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                            {/* ── RIGHT: Order Summary Panel ── */}
+                            <div className="summary-panel" style={{ overflow: "hidden" }}>
+                                {/* Colored geometric header */}
+                                <div style={{
+                                    background: "#2D1B69",
+                                    padding: "24px 28px",
+                                    position: "relative",
+                                    overflow: "hidden"
+                                }}>
+                                    {/* Corner accent */}
+                                    <div style={{
+                                        position: "absolute", top: 0, right: 0,
+                                        width: 60, height: "100%",
+                                        background: "#C4612E",
+                                        clipPath: "polygon(30% 0, 100% 0, 100% 100%, 0% 100%)"
+                                    }} />
+                                    <h3 style={{
+                                        fontFamily: "'Cormorant Garamond', serif",
+                                        fontSize: 22, fontWeight: 400, color: "#fff",
+                                        margin: 0, position: "relative", zIndex: 1
+                                    }}>
+                                        {t("summary")}
+                                    </h3>
+                                </div>
 
-                        {/* ── RIGHT: Summary Sidebar (Glassmorphic) ── */}
-                        <div className="lg:col-span-1">
-                            <div className="bg-white/80 backdrop-blur-md border border-stone-200/60 rounded-[2.5rem] p-6 md:p-8 sticky top-6 shadow-2xl shadow-stone-100/40">
-                                <h3 className="font-serif text-2xl font-light text-stone-900 mb-6">{t("summary")}</h3>
-                                
-                                <div className="space-y-4 mb-6 pb-6 border-b border-stone-150">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-stone-500 font-light">{t("subtotal")}</span>
-                                        <span className="font-serif text-lg font-medium text-stone-900">${cart.total.toFixed(2)}</span>
+                                {/* Summary body */}
+                                <div style={{ padding: "28px 28px 0" }}>
+                                    {/* Subtotal row */}
+                                    <div style={{
+                                        display: "flex", justifyContent: "space-between",
+                                        alignItems: "center",
+                                        paddingBottom: 16, borderBottom: "1px solid #f0ece6"
+                                    }}>
+                                        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#777" }}>
+                                            {t("subtotal")}
+                                        </span>
+                                        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 500, color: "#111" }}>
+                                            ${cart.total.toFixed(2)}
+                                        </span>
                                     </div>
-                                    
-                                    <div className="flex justify-between text-xs text-stone-400 font-light">
-                                        <span>{shippingLabel}</span>
-                                        <span className="uppercase tracking-wider text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+
+                                    {/* Shipping row */}
+                                    <div style={{
+                                        display: "flex", justifyContent: "space-between",
+                                        alignItems: "center",
+                                        padding: "16px 0",
+                                        borderBottom: "1px solid #f0ece6"
+                                    }}>
+                                        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#777" }}>
+                                            {shippingLabel}
+                                        </span>
+                                        <span style={{
+                                            fontFamily: "'DM Sans', sans-serif",
+                                            fontSize: 10, fontWeight: 700,
+                                            letterSpacing: "0.1em", textTransform: "uppercase",
+                                            color: "#2D7A4F", background: "#e8f5ee",
+                                            padding: "3px 8px"
+                                        }}>
                                             {freeLabel}
+                                        </span>
+                                    </div>
+
+                                    {/* Total */}
+                                    <div style={{
+                                        display: "flex", justifyContent: "space-between",
+                                        alignItems: "baseline",
+                                        padding: "20px 0 24px"
+                                    }}>
+                                        <span style={{
+                                            fontFamily: "'DM Sans', sans-serif",
+                                            fontSize: 11, fontWeight: 700,
+                                            letterSpacing: "0.16em", textTransform: "uppercase",
+                                            color: "#444"
+                                        }}>
+                                            {t("total")}
+                                        </span>
+                                        <span style={{
+                                            fontFamily: "'Cormorant Garamond', serif",
+                                            fontSize: 32, fontWeight: 500, color: "#111"
+                                        }}>
+                                            ${cart.total.toFixed(2)}
                                         </span>
                                     </div>
                                 </div>
 
-                                <div className="flex justify-between items-baseline mb-8">
-                                    <span className="text-stone-700 font-medium">{t("total")}</span>
-                                    <span className="font-serif text-3xl font-bold text-amber-900">${cart.total.toFixed(2)}</span>
-                                </div>
-
+                                {/* CTA Button */}
                                 <button
                                     onClick={() => router.push("/checkout")}
-                                    className="w-full flex items-center justify-center gap-2.5 py-4 px-8 rounded-2xl bg-stone-900 hover:bg-stone-800 active:scale-[0.98] text-white text-[15px] font-semibold tracking-wider transition-all duration-200 shadow-xl shadow-stone-900/10"
+                                    className="checkout-btn"
                                 >
                                     <span>{t("checkout")}</span>
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                                         <path d="M5 12h14M12 5l7 7-7 7" />
                                     </svg>
                                 </button>
-                                
-                                {/* Security disclaimer */}
-                                <div className="mt-5 flex items-center justify-center gap-2 text-[10px] text-stone-400 font-sans uppercase tracking-widest">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="text-amber-600">
+
+                                {/* Security note */}
+                                <div style={{
+                                    padding: "14px 28px",
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                    borderTop: "1px solid #f0ece6"
+                                }}>
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#C4612E" strokeWidth={2}>
                                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                                     </svg>
-                                    <span>{secureLabel}</span>
+                                    <span style={{
+                                        fontFamily: "'DM Sans', sans-serif",
+                                        fontSize: 10, fontWeight: 500,
+                                        letterSpacing: "0.12em", textTransform: "uppercase",
+                                        color: "#aaa"
+                                    }}>
+                                        {secureLabel}
+                                    </span>
                                 </div>
                             </div>
                         </div>

@@ -46,30 +46,37 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
 
     return (
-        <div className="flex min-h-screen bg-stone-50 font-sans">
-            <aside className="w-64 m-4 bg-white rounded-2xl shadow-xl border border-stone-200 flex flex-col shrink-0 overflow-hidden">
-                <div className="px-6 py-6 border-b border-stone-200 bg-gradient-to-br from-amber-50 to-white">
-                    <span className="text-xl font-bold tracking-wide text-stone-900">Artesena</span>
-                    <p className="text-xs text-stone-500 mt-0.5">Panel Admin</p>
+        <div className="flex min-h-screen bg-[#faf9f8] font-sans">
+            <aside className="w-64 bg-[#1a1a1a] flex flex-col shrink-0 overflow-hidden shadow-2xl">
+                <div className="px-8 py-8 border-b border-white/10 bg-[#111]">
+                    <span className="text-2xl font-serif text-white tracking-wide">Artesena</span>
+                    <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-[0.2em]">Admin Panel</p>
                 </div>
-                <nav className="flex flex-col gap-1 p-4 flex-1">
-                    {links.map((l) => (
-                        <Link
-                            key={l.href}
-                            href={l.href}
-                            className="px-4 py-3 rounded-xl text-sm text-stone-600 hover:bg-amber-50 hover:text-amber-600 transition-all font-medium flex items-center gap-3"
-                        >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={l.icon} />
-                            </svg>
-                            {l.label}
-                        </Link>
-                    ))}
+                <nav className="flex flex-col gap-1 p-4 flex-1 overflow-y-auto custom-scroll">
+                    {links.map((l) => {
+                        const isActive = pathname === l.href || pathname.startsWith(l.href + "/");
+                        return (
+                            <Link
+                                key={l.href}
+                                href={l.href}
+                                className={`px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-3 transition-all ${
+                                    isActive 
+                                    ? "bg-[#C4612E] text-white shadow-lg shadow-[#C4612E]/20" 
+                                    : "text-gray-400 hover:bg-white/5 hover:text-white"
+                                }`}
+                            >
+                                <svg className={`w-5 h-5 ${isActive ? "text-white" : "text-gray-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={l.icon} />
+                                </svg>
+                                {l.label}
+                            </Link>
+                        );
+                    })}
                 </nav>
-                <div className="p-4 border-t border-stone-200">
+                <div className="p-4 border-t border-white/10">
                     <button 
                         onClick={handleLogout}
-                        className="w-full px-4 py-2 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-all font-medium flex items-center gap-3"
+                        className="w-full px-4 py-3 rounded-lg text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all font-medium flex items-center gap-3"
                     >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -78,7 +85,85 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </button>
                 </div>
             </aside>
-            <main className="flex-1 overflow-auto">{children}</main>
+            <main className="flex-1 overflow-auto admin-main relative">
+                <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-[#e2ded9]/50 to-transparent pointer-events-none" />
+                <div className="relative z-10 p-4 md:p-8 max-w-7xl mx-auto">
+                    {children}
+                </div>
+            </main>
+
+            <style>{`
+                /* Global Admin Overrides */
+                .admin-main {
+                    font-family: 'DM Sans', sans-serif;
+                }
+                .admin-main h1 {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-weight: 600;
+                    color: #111 !important;
+                    font-size: 2.5rem !important;
+                    letter-spacing: -0.02em;
+                }
+                .admin-main h2, .admin-main h3 {
+                    font-family: 'Cormorant Garamond', serif;
+                    color: #111 !important;
+                }
+                /* Buttons */
+                .admin-main button:not(.pdp-qty-btn) {
+                    border-radius: 6px !important;
+                    transition: all 0.2s ease !important;
+                }
+                /* Inputs */
+                .admin-main input, .admin-main select, .admin-main textarea {
+                    border: 1px solid #e2ded9 !important;
+                    border-radius: 6px !important;
+                    background: #fff !important;
+                    color: #333 !important;
+                    box-shadow: none !important;
+                }
+                .admin-main input:focus, .admin-main select:focus, .admin-main textarea:focus {
+                    border-color: #111 !important;
+                    outline: none !important;
+                    box-shadow: 0 0 0 1px #111 !important;
+                }
+                /* Tables */
+                .admin-main table {
+                    width: 100%;
+                    border-collapse: separate;
+                    border-spacing: 0;
+                    margin-top: 1rem;
+                }
+                .admin-main th {
+                    background: #f5f2ef;
+                    color: #555 !important;
+                    font-size: 11px !important;
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                    padding: 16px 24px !important;
+                    font-weight: 600;
+                    border-bottom: 1px solid #e2ded9;
+                }
+                .admin-main th:first-child { border-top-left-radius: 8px; }
+                .admin-main th:last-child { border-top-right-radius: 8px; }
+                .admin-main td {
+                    padding: 16px 24px !important;
+                    border-bottom: 1px solid #e8e4df !important;
+                    background: #fff;
+                    color: #444 !important;
+                    font-size: 14px !important;
+                }
+                /* Card Wrappers */
+                .admin-main > div > .bg-white,
+                .admin-main .bg-white.rounded-xl {
+                    border-radius: 12px !important;
+                    border: 1px solid #e8e4df !important;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
+                }
+                /* Custom scroll for sidebar */
+                .custom-scroll::-webkit-scrollbar { width: 4px; }
+                .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+                .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+            `}</style>
         </div>
     );
 }

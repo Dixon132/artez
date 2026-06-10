@@ -8,6 +8,15 @@ import { productsApi, cartApi, getSessionId } from "@/services/api";
 import gsap from "gsap";
 import { gaViewItem, gaAddToCart } from "@/lib/analytics";
 import { fbViewContent, fbAddToCart } from "@/lib/fbpixel";
+import toast from 'react-hot-toast';
+
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
+function getImg(img: any) {
+    if (!img) return null;
+    const url = img.image || img;
+    if (!url) return null;
+    return url.startsWith("http") ? url : `${BACKEND}${url}`;
+}
 
 export default function ProductDetailClient() {
     const params = useParams();
@@ -32,13 +41,13 @@ export default function ProductDetailClient() {
 
     useEffect(() => {
         if (!loading && product) {
-            gsap.fromTo(galleryRef.current, 
-                { opacity: 0, x: -40 },
-                { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }
+            gsap.fromTo(galleryRef.current,
+                { opacity: 0, x: -30 },
+                { opacity: 1, x: 0, duration: 0.9, ease: "power3.out" }
             );
             gsap.fromTo(infoRef.current?.children || [],
-                { opacity: 0, y: 20 },
-                { opacity: 1, y: 0, duration: 0.6, stagger: 0.08, ease: "power2.out", delay: 0.2 }
+                { opacity: 0, y: 16 },
+                { opacity: 1, y: 0, duration: 0.6, stagger: 0.07, ease: "power2.out", delay: 0.15 }
             );
         }
     }, [loading, product]);
@@ -50,14 +59,8 @@ export default function ProductDetailClient() {
             const data = await productsApi.get(Number(params.id), locale);
             setProduct(data);
             lastLoadedProduct.current = data;
-            
-            // Track view item
-            if (data) {
-                gaViewItem(data);
-                fbViewContent(data);
-            }
+            if (data) { gaViewItem(data); fbViewContent(data); }
         } catch {
-            // On failure, show last loaded content or error state
             if (lastLoadedProduct.current) {
                 setProduct(lastLoadedProduct.current);
             } else {
@@ -79,7 +82,7 @@ export default function ProductDetailClient() {
 
     const handleAddToCart = async () => {
         const missing = product.product_options?.filter((po: any) => !selectedOptions[po.option.id]);
-        if (missing?.length > 0) { alert(t("selectAllOptions")); return; }
+        if (missing?.length > 0) { toast.error(t("selectAllOptions")); return; }
         setAdding(true);
         try {
             const sessionId = getSessionId();
@@ -87,12 +90,9 @@ export default function ProductDetailClient() {
                 option_id: Number(optionId), value_id: value.id,
             }));
             await cartApi.addItem({ session_id: sessionId, product_id: product.id, quantity, options });
-            
-            // Track add to cart
             const total = calculateTotal();
             gaAddToCart(product, quantity, total);
             fbAddToCart(product, quantity, total);
-            
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
         } finally { setAdding(false); }
@@ -116,9 +116,9 @@ export default function ProductDetailClient() {
     if (loading) return (
         <>
             <style>{`
-                .ldwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fafaf8}
-                .ld{width:40px;height:40px;border:2px solid #e7e3dc;border-top-color:#d97706;border-radius:50%;animation:sp .8s linear infinite}
                 @keyframes sp{to{transform:rotate(360deg)}}
+                .ldwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fff}
+                .ld{width:28px;height:28px;border:1px solid #e8e4df;border-top-color:#111;border-radius:50%;animation:sp .8s linear infinite}
             `}</style>
             <div className="ldwrap"><div className="ld" /></div>
         </>
@@ -126,32 +126,19 @@ export default function ProductDetailClient() {
 
     if (error && !product) return (
         <>
-            <style>{`body{background:#fafaf8;font-family:system-ui}
-            .err-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
-            .err-wrap h2{font-size:20px;color:#292524}
-            .err-btn{background:#d97706;border:none;color:white;cursor:pointer;font-size:14px;padding:10px 20px;border-radius:8px;margin-top:8px}
-            .err-btn:hover{background:#b45309}
-            .back-btn{background:none;border:none;color:#d97706;cursor:pointer;font-size:14px;text-decoration:underline}`}</style>
-            <div className="err-wrap">
-                <h2>{t("errorLoading")}</h2>
+            <style>{`body{background:#fff;font-family:'DM Sans',sans-serif}
+            .err{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+            .err p{font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#a8a29e}
+            .err-btn{font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;padding:14px 32px;background:#111;color:#fff;border:none;cursor:pointer}`}</style>
+            <div className="err">
+                <p>{t("errorLoading")}</p>
                 <button className="err-btn" onClick={loadProduct}>{t("retryLoad")}</button>
-                <button className="back-btn" onClick={() => router.push("/products")}>{t("backToProducts")}</button>
+                <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#a8a29e", fontFamily: "'DM Sans', sans-serif" }} onClick={() => router.push("/products")}>{t("backToProducts")}</button>
             </div>
         </>
     );
 
-    if (!product) return (
-        <>
-            <style>{`body{background:#fafaf8;font-family:system-ui}
-            .nf{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
-            .nf h2{font-size:20px;color:#292524}
-            .nfbtn{background:none;border:none;color:#d97706;cursor:pointer;font-size:14px;text-decoration:underline}`}</style>
-            <div className="nf">
-                <h2>{t("notFound")}</h2>
-                <button className="nfbtn" onClick={() => router.push("/products")}>{t("backToProducts")}</button>
-            </div>
-        </>
-    );
+    if (!product) return null;
 
     const total = calculateTotal();
     const canGoUp = activeImage > 0;
@@ -159,113 +146,118 @@ export default function ProductDetailClient() {
 
     return (
         <>
-            <style>{CSS}</style>
+            <style>{CSS_PDP}</style>
 
-            <div className={`toast ${showSuccess ? "toast--on" : ""}`}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+            {/* Added to cart notification */}
+            <div className={`pdp-toast ${showSuccess ? "pdp-toast--on" : ""}`}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5"/></svg>
                 {t("addedToCart")}
             </div>
 
             <main className="pdp">
-                <div className="pdp__inner">
+                <div className="pdp-inner">
 
-                    {/* ── LEFT: Vertical Slider ── */}
-                    <div className="gallery" ref={galleryRef}>
-                        <button
-                            className={`gallery__arrow gallery__arrow--up ${!canGoUp ? "gallery__arrow--gone" : ""}`}
-                            onClick={goUp} aria-label="Previous"
-                        >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6"/></svg>
-                        </button>
-
-                        <div
-                            className="gallery__viewport"
-                            onWheel={handleWheel}
-                            onTouchStart={handleTouchStart}
-                            onTouchEnd={handleTouchEnd}
-                        >
-                            <div
-                                className="gallery__track-inner"
-                                style={{ transform: `translateY(calc(-${activeImage} * (100% + 12px)))` }}
-                            >
-                                {images.length > 0 ? images.map((img: any, i: number) => (
-                                    <div key={i} className="gallery__slide">
-                                        <img
-                                            src={img.image.startsWith("http") ? img.image : `http://127.0.0.1:8000${img.image}`}
-                                            alt={`${product.name} ${i + 1}`}
-                                            loading={i === 0 ? "eager" : "lazy"}
-                                            className="gallery__img"
-                                            draggable={false}
-                                        />
-                                    </div>
-                                )) : (
-                                    <div className="gallery__slide gallery__empty">
-                                        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                                            <path d="M9 19V6l12-3v13M9 19c0 1.1-1.34 2-3 2s-3-.9-3-2 1.34-2 3-2 3 .9 3 2zm12-3c0 1.1-1.34 2-3 2s-3-.9-3-2 1.34-2 3-2 3 .9 3 2zM9 10l12-3"/>
-                                        </svg>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <button
-                            className={`gallery__arrow gallery__arrow--down ${!canGoDown ? "gallery__arrow--gone" : ""}`}
-                            onClick={goDown} aria-label="Next"
-                        >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
-                        </button>
-
-                        {/* Vertical pip track */}
+                    {/* ── LEFT: Gallery ── */}
+                    <div className="pdp-gallery" ref={galleryRef}>
+                        {/* Thumbnail strip */}
                         {images.length > 1 && (
-                            <div className="gallery__pips">
-                                {images.map((_: any, i: number) => (
+                            <div className="pdp-thumbs">
+                                {images.map((img: any, i: number) => (
                                     <button
                                         key={i}
+                                        className={`pdp-thumb ${activeImage === i ? "pdp-thumb--on" : ""}`}
                                         onClick={() => setActiveImage(i)}
-                                        className={`gallery__pip ${activeImage === i ? "gallery__pip--on" : ""}`}
-                                        aria-label={`Image ${i + 1}`}
-                                    />
+                                        aria-label={`Imagen ${i + 1}`}
+                                    >
+                                        <img
+                                            src={getImg(img) || ""}
+                                            alt=""
+                                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                                        />
+                                    </button>
                                 ))}
                             </div>
                         )}
 
-                        {/* Counter */}
-                        {images.length > 1 && (
-                            <div className="gallery__count">
-                                <span className="gallery__count-n">{activeImage + 1}</span>
-                                <span className="gallery__count-slash">/</span>
-                                <span className="gallery__count-t">{images.length}</span>
-                            </div>
-                        )}
+                        {/* Main image */}
+                        <div
+                            className="pdp-main-img-wrap"
+                            onWheel={handleWheel}
+                            onTouchStart={handleTouchStart}
+                            onTouchEnd={handleTouchEnd}
+                        >
+                            {images.length > 0 ? (
+                                images.map((img: any, i: number) => (
+                                    <img
+                                        key={i}
+                                        src={getImg(img) || ""}
+                                        alt={`${product.name} ${i + 1}`}
+                                        loading={i === 0 ? "eager" : "lazy"}
+                                        className="pdp-main-img"
+                                        style={{ opacity: activeImage === i ? 1 : 0, zIndex: activeImage === i ? 1 : 0 }}
+                                        draggable={false}
+                                    />
+                                ))
+                            ) : (
+                                <div className="pdp-img-empty">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ddd" strokeWidth="1">
+                                        <path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                                    </svg>
+                                </div>
+                            )}
+
+                            {/* Nav arrows over image */}
+                            {images.length > 1 && (
+                                <div className="pdp-img-nav">
+                                    <button className="pdp-img-arrow" onClick={goUp} disabled={!canGoUp} aria-label="Anterior">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 15l-6-6-6 6"/></svg>
+                                    </button>
+                                    <span className="pdp-img-counter">{activeImage + 1} / {images.length}</span>
+                                    <button className="pdp-img-arrow" onClick={goDown} disabled={!canGoDown} aria-label="Siguiente">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 9l6 6 6-6"/></svg>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* ── RIGHT: Info ── */}
-                    <div className="info" ref={infoRef}>
-                        <button className="back" onClick={() => router.push("/products")}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    <div className="pdp-info" ref={infoRef}>
+                        {/* Back */}
+                        <button className="pdp-back" onClick={() => router.push("/products")}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                             {t("backToProducts")}
                         </button>
 
-                        <span className="cat-pill">{product.category_name}</span>
+                        {/* Category */}
+                        <p className="pdp-category">{product.category_name}</p>
 
-                        <h1 className="name">{product.name}</h1>
+                        {/* Name */}
+                        <h1 className="pdp-name">{product.name}</h1>
 
-                        <div className="price-block">
-                            <span className="price">${total.toFixed(2)}</span>
-                        </div>
+                        {/* Price */}
+                        <p className="pdp-price">${total.toFixed(2)}</p>
 
-                        <p className="desc">{product.description}</p>
+                        {/* Divider */}
+                        <div className="pdp-rule" />
 
-                        <hr className="rule" />
+                        {/* Description */}
+                        <p className="pdp-desc">{product.description}</p>
 
+                        {/* Options */}
                         {product.product_options?.length > 0 && (
-                            <div className="opts">
+                            <div className="pdp-opts">
                                 {product.product_options.map((po: any) => {
                                     const opt = po.option;
                                     return (
-                                        <div key={opt.id} className="opt-group">
-                                            <p className="opt-label">{opt.name}</p>
-                                            <div className="opt-chips">
+                                        <div key={opt.id} className="pdp-opt-group">
+                                            <p className="pdp-opt-label">
+                                                {opt.name}
+                                                {selectedOptions[opt.id] && (
+                                                    <span className="pdp-opt-sel"> — {selectedOptions[opt.id].name}</span>
+                                                )}
+                                            </p>
+                                            <div className="pdp-chips">
                                                 {opt.values.map((val: any) => {
                                                     const sel = selectedOptions[opt.id]?.id === val.id;
                                                     return (
@@ -274,18 +266,18 @@ export default function ProductDetailClient() {
                                                             onClick={() => setSelectedOptions((p: any) => ({
                                                                 ...p, [opt.id]: sel ? null : val,
                                                             }))}
-                                                            className={`chip ${sel ? "chip--sel" : ""}`}
+                                                            className={`pdp-chip ${sel ? "pdp-chip--sel" : ""}`}
                                                         >
                                                             {val.image && (
                                                                 <img
-                                                                    src={val.image.startsWith("http") ? val.image : `http://127.0.0.1:8000${val.image}`}
+                                                                    src={getImg(val) || ""}
                                                                     alt={val.name}
-                                                                    className="chip-img"
+                                                                    className="pdp-chip-img"
                                                                 />
                                                             )}
                                                             {val.name}
                                                             {Number(val.base_extra_price) > 0 && (
-                                                                <span className="chip-extra">+${val.base_extra_price}</span>
+                                                                <span className="pdp-chip-extra">+${val.base_extra_price}</span>
                                                             )}
                                                         </button>
                                                     );
@@ -297,38 +289,36 @@ export default function ProductDetailClient() {
                             </div>
                         )}
 
-                        <div className="qty-group">
-                            <p className="opt-label">{t("quantity")}</p>
-                            <div className="qty">
-                                <button className="qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1}>
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14"/></svg>
+                        {/* Quantity */}
+                        <div className="pdp-qty-group">
+                            <p className="pdp-opt-label">{t("quantity")}</p>
+                            <div className="pdp-qty">
+                                <button className="pdp-qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1}>
+                                    <svg width="12" height="2" viewBox="0 0 12 2" fill="currentColor"><rect width="12" height="2"/></svg>
                                 </button>
-                                <span className="qty-n">{quantity}</span>
-                                <button className="qty-btn" onClick={() => setQuantity(quantity + 1)}>
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                                <span className="pdp-qty-n">{quantity}</span>
+                                <button className="pdp-qty-btn" onClick={() => setQuantity(quantity + 1)}>
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="5" y="0" width="2" height="12"/><rect x="0" y="5" width="12" height="2"/></svg>
                                 </button>
                             </div>
                         </div>
 
-                        <button className={`cta ${adding ? "cta--busy" : ""}`} onClick={handleAddToCart} disabled={adding}>
+                        {/* CTA */}
+                        <button className={`pdp-cta ${adding ? "pdp-cta--busy" : ""}`} onClick={handleAddToCart} disabled={adding}>
                             {adding ? (
-                                <><div className="spin" /> {t("adding")}</>
-                            ) : (
-                                <>
-                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
-                                    {t("addToCart")}
-                                </>
-                            )}
+                                <><div className="pdp-spin" /> {t("adding")}</>
+                            ) : t("addToCart")}
                         </button>
 
-                        <div className="trust">
+                        {/* Trust */}
+                        <div className="pdp-trust">
                             {[
                                 { icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", label: t("securePay") },
                                 { icon: "M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4", label: t("fastShipping") },
                                 { icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15", label: t("returns") },
                             ].map(({ icon, label }) => (
-                                <div key={label} className="trust-item">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d={icon}/></svg>
+                                <div key={label} className="pdp-trust-item">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d={icon}/></svg>
                                     {label}
                                 </div>
                             ))}
@@ -340,350 +330,309 @@ export default function ProductDetailClient() {
     );
 }
 
-
-const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Inter:wght@300;400;500;600&display=swap');
-
+const CSS_PDP = `
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 .pdp {
     min-height: 100vh;
-    background: linear-gradient(135deg, #fffbf5 0%, #ffffff 50%, #faf8f5 100%);
-    font-family: 'Inter', system-ui, sans-serif;
+    background: #fff;
+    font-family: 'DM Sans', system-ui, sans-serif;
 }
-
-.pdp__inner {
-    max-width: 1280px;
+.pdp-inner {
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 120px 32px 40px;
+    padding-top: 64px;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
+    grid-template-columns: 1fr 480px;
+    min-height: 100vh;
     align-items: start;
 }
-@media (max-width: 860px) {
-    .pdp__inner { grid-template-columns: 1fr; padding: 100px 20px 40px; gap: 40px; }
+@media (max-width: 1100px) {
+    .pdp-inner { grid-template-columns: 1fr; }
 }
 
 /* ── Gallery ── */
-.gallery {
-    position: sticky;
-    top: 100px;
+.pdp-gallery {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    position: relative;
-}
-@media (max-width: 860px) {
-    .gallery { position: relative; top: 0; }
-}
-
-.gallery__arrow {
-    flex-shrink: 0;
-    width: 44px; height: 44px;
-    border-radius: 50%;
-    border: 1px solid #e7e3dc;
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(8px);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    color: #78716c;
-    transition: all 0.2s ease;
-    z-index: 2;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
-}
-.gallery__arrow:hover { 
-    border-color: #d97706; 
-    color: #d97706; 
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15), 0 2px 4px rgba(0,0,0,0.08);
-}
-.gallery__arrow--gone { opacity: 0; pointer-events: none; }
-
-.gallery__viewport {
-    width: 100%;
-    height: 600px;
-    overflow: hidden;
-    border-radius: 24px;
-    box-shadow: 
-        0 20px 60px rgba(0,0,0,0.08),
-        0 8px 24px rgba(0,0,0,0.06),
-        0 0 0 1px rgba(0,0,0,0.04);
-}
-@media (max-width: 860px) {
-    .gallery__viewport { height: 400px; }
-}
-
-.gallery__track-inner {
-    display: flex;
-    flex-direction: column;
     gap: 12px;
-    height: 100%;
-    transition: transform 0.6s cubic-bezier(0.77, 0, 0.18, 1);
-    will-change: transform;
+    padding: 0;
+    position: sticky;
+    top: 64px;
+    align-self: start;
+}
+@media (max-width: 1100px) {
+    .pdp-gallery { position: relative; top: 0; }
 }
 
-.gallery__slide {
+.pdp-thumbs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 64px;
     flex-shrink: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 24px;
+    padding: 16px 0 16px 24px;
+}
+.pdp-thumb {
+    width: 64px;
+    height: 80px;
+    border: none;
+    padding: 0;
+    cursor: pointer;
     overflow: hidden;
-    background: linear-gradient(135deg, #f5f0e8 0%, #faf8f3 100%);
+    background: #f5f2ef;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+}
+.pdp-thumb:hover { opacity: 0.8; }
+.pdp-thumb--on { opacity: 1; outline: 1px solid #111; }
+
+.pdp-main-img-wrap {
+    position: relative;
+    flex: 1;
+    background: #f5f2ef;
+    overflow: hidden;
+    min-height: calc(100vh - 64px);
+}
+@media (max-width: 1100px) {
+    .pdp-main-img-wrap { min-height: 70vw; max-height: 80vh; }
 }
 
-.gallery__empty {
+.pdp-main-img {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    transition: opacity 0.4s ease;
+}
+.pdp-img-empty {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 500px;
+}
+
+/* Image nav overlay */
+.pdp-img-nav {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(8px);
+    padding: 8px 16px;
+}
+.pdp-img-arrow {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: #111;
+    display: flex;
+    transition: opacity 0.2s;
+}
+.pdp-img-arrow:disabled { opacity: 0.25; cursor: not-allowed; }
+.pdp-img-counter {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: #555;
+    min-width: 40px;
+    text-align: center;
+}
+
+/* ── Info ── */
+.pdp-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 64px 48px 64px 40px;
+    border-left: 1px solid #e8e4df;
+    min-height: calc(100vh - 64px);
+}
+@media (max-width: 1100px) {
+    .pdp-info { border-left: none; border-top: 1px solid #e8e4df; padding: 32px 24px; }
+}
+
+.pdp-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #a8a29e;
+    padding: 0;
+    transition: color 0.2s;
+    margin-bottom: 4px;
+}
+.pdp-back:hover { color: #111; }
+
+.pdp-category {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #a8a29e;
+}
+
+.pdp-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: clamp(28px, 3.5vw, 42px);
+    line-height: 1.15;
+    color: #111;
+    letter-spacing: -0.01em;
+}
+
+.pdp-price {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: #555;
+    letter-spacing: 0.02em;
+}
+
+.pdp-rule {
+    border-top: 1px solid #e8e4df;
+}
+
+.pdp-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.9;
+    color: #777;
+    font-weight: 300;
+}
+
+/* Options */
+.pdp-opts { display: flex; flex-direction: column; gap: 20px; }
+.pdp-opt-group { display: flex; flex-direction: column; gap: 10px; }
+.pdp-opt-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #aaa;
+}
+.pdp-opt-sel {
+    text-transform: none;
+    letter-spacing: 0;
+    color: #111;
+    font-weight: 500;
+}
+.pdp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pdp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border: 1px solid #e8e4df;
+    background: #fff;
+    color: #333;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: border-color 0.18s, background 0.18s;
+}
+.pdp-chip:hover { border-color: #111; }
+.pdp-chip--sel { border-color: #111; background: #111; color: #fff; }
+.pdp-chip-extra { font-size: 11px; opacity: 0.6; }
+.pdp-chip-img { width: 24px; height: 24px; object-fit: cover; }
+
+/* Quantity */
+.pdp-qty-group { display: flex; flex-direction: column; gap: 10px; }
+.pdp-qty { display: inline-flex; align-items: center; border: 1px solid #e8e4df; }
+.pdp-qty-btn {
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; cursor: pointer;
+    color: #333;
+    transition: background 0.15s;
+}
+.pdp-qty-btn:hover:not(:disabled) { background: #f5f2ef; }
+.pdp-qty-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.pdp-qty-n {
+    min-width: 48px;
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: #111;
+    border-left: 1px solid #e8e4df;
+    border-right: 1px solid #e8e4df;
+    line-height: 40px;
+}
+
+/* CTA */
+.pdp-cta {
+    width: 100%;
+    padding: 16px;
+    background: #111;
+    color: #fff;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #d6cfc4;
+    gap: 8px;
+    transition: background 0.2s;
 }
-
-.gallery__img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
+.pdp-cta:hover:not(:disabled) { background: #333; }
+.pdp-cta:disabled { opacity: 0.55; cursor: not-allowed; }
+.pdp-spin {
+    width: 14px; height: 14px;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: pdp-sp .7s linear infinite;
 }
+@keyframes pdp-sp { to { transform: rotate(360deg); } }
 
-/* Vertical pip track */
-.gallery__pips {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
+/* Trust */
+.pdp-trust {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+    padding-top: 4px;
+}
+.pdp-trust-item {
+    display: flex;
     align-items: center;
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(8px);
-    padding: 12px 8px;
-    border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-.gallery__pip {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    border: none; padding: 0;
-    background: #d6cfc4;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.gallery__pip:hover { background: #d97706; transform: scale(1.3); }
-.gallery__pip--on {
-    height: 28px;
-    border-radius: 4px;
-    background: #d97706;
-    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+    gap: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: #a8a29e;
+    letter-spacing: 0.04em;
 }
 
-/* Counter badge */
-.gallery__count {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    display: flex; align-items: baseline; gap: 4px;
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(8px);
-    border: 1px solid #e7e3dc;
-    border-radius: 24px;
-    padding: 6px 14px;
-    pointer-events: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-.gallery__count-n { font-size: 14px; font-weight: 600; color: #d97706; }
-.gallery__count-slash { font-size: 12px; color: #c4b9b0; }
-.gallery__count-t { font-size: 12px; color: #a8a29e; }
-
-/* ── Info ── */
-.info {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-}
-
-.back {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: none; border: none; cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;
-    color: #a8a29e; padding: 0;
-    transition: all 0.2s;
-    font-weight: 500;
-}
-.back:hover { color: #d97706; }
-.back svg { transition: transform 0.2s; }
-.back:hover svg { transform: translateX(-4px); }
-
-.cat-pill {
-    display: inline-block;
-    font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
-    color: #d97706; background: #fef3c7;
-    padding: 6px 14px; border-radius: 24px;
-    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.12);
-    width: fit-content;
-}
-
-.name {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(32px, 4vw, 48px);
-    font-weight: 500;
-    line-height: 1.2;
-    color: #1c1917;
-    letter-spacing: -0.02em;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.02);
-}
-
-.price-block { 
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-    padding: 20px 24px;
-    border-radius: 16px;
-    border: 1px solid #fde68a;
-    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.08);
-}
-.price {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 44px; font-weight: 600;
-    color: #92400e;
-    letter-spacing: -0.02em;
-    line-height: 1;
-}
-
-.desc {
-    font-size: 15px; line-height: 1.8;
-    color: #57534e; font-weight: 400;
-}
-
-.rule {
-    border: none; border-top: 1px solid #f0ebe3;
-}
-
-.opts { display: flex; flex-direction: column; gap: 24px; }
-
-.opt-group {
-    background: white;
-    padding: 20px;
-    border-radius: 16px;
-    border: 1px solid #f0ebe3;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-}
-
-.opt-label {
-    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: #78716c; font-weight: 600; margin-bottom: 12px;
-}
-
-.opt-chips { display: flex; flex-wrap: wrap; gap: 10px; }
-
-.chip {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 11px 20px;
-    border-radius: 12px;
-    border: 2px solid #e7e3dc;
-    background: white;
-    color: #44403c;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px; cursor: pointer;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
-.chip:hover { 
-    border-color: #d97706; 
-    color: #92400e;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12);
-}
-.chip--sel { 
-    border-color: #d97706; 
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); 
-    color: #92400e; 
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15);
-}
-.chip-extra { font-size: 12px; color: #a8a29e; font-weight: 500; }
-.chip-img { width: 28px; height: 28px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
-
-.qty-group { }
-.qty {
-    display: inline-flex; align-items: center;
-    border: 2px solid #e7e3dc; border-radius: 12px;
-    overflow: hidden; background: white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.qty-btn {
-    width: 44px; height: 44px;
-    display: flex; align-items: center; justify-content: center;
-    background: none; border: none; cursor: pointer;
-    color: #78716c; transition: all 0.2s;
-}
-.qty-btn:hover:not(:disabled) { background: #fef3c7; color: #d97706; }
-.qty-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.qty-n {
-    min-width: 50px; text-align: center;
-    font-family: 'Playfair Display', serif;
-    font-size: 22px; font-weight: 600; color: #1c1917;
-    border-left: 1px solid #f0ebe3;
-    border-right: 1px solid #f0ebe3;
-    line-height: 44px;
-}
-
-.cta {
-    width: 100%; padding: 18px 32px;
-    border-radius: 14px; border: none;
-    background: linear-gradient(135deg, #1c1917 0%, #292524 100%);
-    color: white;
-    font-family: 'Inter', sans-serif;
-    font-size: 15px; font-weight: 600; letter-spacing: 0.02em;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    transition: all 0.2s ease;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
-}
-.cta:hover:not(:disabled) { 
-    background: linear-gradient(135deg, #292524 0%, #44403c 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.12);
-}
-.cta:active:not(:disabled) { transform: translateY(0); }
-.cta:disabled { opacity: 0.6; cursor: not-allowed; }
-.spin {
-    width: 16px; height: 16px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: sp .7s linear infinite;
-}
-@keyframes sp { to { transform: rotate(360deg); } }
-
-.trust { 
-    display: flex; 
-    gap: 24px; 
-    flex-wrap: wrap;
-    padding: 20px;
-    background: #fafaf9;
-    border-radius: 12px;
-    border: 1px solid #f0ebe3;
-}
-.trust-item {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 12px; color: #78716c;
-    font-weight: 500;
-}
-.trust-item svg { color: #d97706; }
-
-.toast {
-    position: fixed; top: 100px; right: 24px; z-index: 9999;
-    background: linear-gradient(135deg, #1c1917 0%, #292524 100%);
-    color: white;
-    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+/* Toast */
+.pdp-toast {
+    position: fixed; top: 80px; right: 24px; z-index: 9999;
+    background: #111;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     display: flex; align-items: center; gap: 10px;
-    padding: 14px 20px; border-radius: 12px;
-    transform: translateX(400px); opacity: 0;
+    padding: 14px 20px;
+    transform: translateX(300px); opacity: 0;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.12);
 }
-.toast--on { transform: translateX(0); opacity: 1; }
-.toast svg { color: #10b981; }`;
+.pdp-toast--on { transform: translateX(0); opacity: 1; }
+`;

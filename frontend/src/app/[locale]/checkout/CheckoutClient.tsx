@@ -7,6 +7,7 @@ import { cartApi, ordersApi, getSessionId } from "@/services/api";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import { gaBeginCheckout } from "@/lib/analytics";
 import { fbInitiateCheckout } from "@/lib/fbpixel";
+import toast from 'react-hot-toast';
 
 const shippingCountries = [
     "United States", "Canada", "United Kingdom", "Germany", "France",
@@ -108,7 +109,7 @@ export default function CheckoutClient() {
             });
             router.push(`/checkout/success?order=${response.order.id}` as any);
         } catch (error) {
-            alert("Error al crear la orden");
+            toast.error("Error al crear la orden");
         } finally {
             setSubmitting(false);
         }

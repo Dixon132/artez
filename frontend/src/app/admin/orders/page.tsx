@@ -95,8 +95,8 @@ export default function AdminOrdersPage() {
         <div className="p-8">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-stone-900">Órdenes</h2>
-                    <p className="text-sm text-stone-500 mt-1">{orders.length} órdenes totales</p>
+                    <h2 className="text-3xl font-serif tracking-tight text-[#111]">Órdenes</h2>
+                    <p className="text-sm text-[#777] mt-1">{orders.length} órdenes totales</p>
                 </div>
             </div>
 
@@ -109,7 +109,7 @@ export default function AdminOrdersPage() {
                 />
                 <button 
                     onClick={() => { setPage(1); loadData(); }}
-                    className="px-6 py-2 bg-stone-200 hover:bg-stone-300 font-medium rounded-lg transition-colors"
+                    className="px-6 py-2 bg-[#e2ded9] hover:bg-[#d8d4cf] font-medium rounded-lg transition-colors"
                 >
                     Buscar
                 </button>
@@ -126,13 +126,13 @@ export default function AdminOrdersPage() {
                             className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all whitespace-nowrap ${
                                 activeTab === status.value
                                     ? `${status.color} border-current shadow-md`
-                                    : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
+                                    : "bg-white border-[#e8e4df] text-[#555] hover:border-[#e2ded9]"
                             }`}
                         >
                             <Icon className="w-5 h-5" />
                             <span className="font-medium text-sm">{status.label}</span>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                                activeTab === status.value ? "bg-white/50" : "bg-stone-100"
+                                activeTab === status.value ? "bg-white/50" : "bg-[#f5f2ef]"
                             }`}>
                                 {count}
                             </span>
@@ -141,7 +141,7 @@ export default function AdminOrdersPage() {
                 })}
             </div>
 
-            {loading && <div className="text-center py-8 text-stone-500">Cargando...</div>}
+            {loading && <div className="text-center py-8 text-[#777]">Cargando...</div>}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredOrders.map((order) => {
@@ -151,7 +151,7 @@ export default function AdminOrdersPage() {
                     return (
                         <div
                             key={order.id}
-                            className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+                            className="bg-white rounded-xl border border-[#e8e4df] shadow-sm overflow-hidden hover:shadow-md transition-shadow"
                         >
                             <div className={`px-4 py-2 border-b ${config.color}`}>
                                 <div className="flex items-center justify-between">
@@ -164,19 +164,19 @@ export default function AdminOrdersPage() {
                             </div>
                             <div className="p-4">
                                 <div className="mb-3">
-                                    <div className="font-medium text-stone-900">{order.full_name}</div>
-                                    <div className="text-sm text-stone-500">{order.email}</div>
+                                    <div className="font-medium text-[#111]">{order.full_name}</div>
+                                    <div className="text-sm text-[#777]">{order.email}</div>
                                 </div>
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="text-sm text-stone-500">
+                                    <span className="text-sm text-[#777]">
                                         {new Date(order.created_at).toLocaleDateString()}
                                     </span>
-                                    <span className="text-lg font-bold text-amber-600">${order.total_price}</span>
+                                    <span className="text-lg font-bold text-[#111]">${order.total_price}</span>
                                 </div>
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => openDetail(order)}
-                                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm text-stone-600 hover:bg-stone-50 rounded-lg border border-stone-200 transition-colors"
+                                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm text-[#555] hover:bg-[#faf9f8] rounded-lg border border-[#e8e4df] transition-colors"
                                     >
                                         <Eye className="w-4 h-4" />
                                         Ver detalle
@@ -184,7 +184,7 @@ export default function AdminOrdersPage() {
                                     {nextLabel && (
                                         <button
                                             onClick={() => handleAdvanceStatus(order)}
-                                            className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm text-white bg-amber-500 hover:bg-amber-600 rounded-lg transition-colors font-medium"
+                                            className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm text-white bg-[#111] hover:bg-[#C4612E] rounded-lg transition-colors font-medium"
                                         >
                                             <ArrowRight className="w-4 h-4" />
                                             {nextLabel}
@@ -210,9 +210,9 @@ export default function AdminOrdersPage() {
                 <div className="text-center py-16">
                     {(() => {
                         const Icon = getStatusConfig(activeTab).icon;
-                        return <Icon className="w-16 h-16 text-stone-300 mx-auto mb-4" />;
+                        return <Icon className="w-16 h-16 text-[#ccc] mx-auto mb-4" />;
                     })()}
-                    <p className="text-stone-500">No hay órdenes en "{getStatusConfig(activeTab).label}"</p>
+                    <p className="text-[#777]">No hay órdenes en "{getStatusConfig(activeTab).label}"</p>
                 </div>
             )}
 
@@ -220,10 +220,10 @@ export default function AdminOrdersPage() {
 
             {detailModalOpen && selectedOrder && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-stone-900">Orden #{selectedOrder.id}</h3>
-                            <button onClick={() => setDetailModalOpen(false)} className="text-stone-400 hover:text-stone-600">
+                            <h3 className="text-xl font-bold text-[#111]">Orden #{selectedOrder.id}</h3>
+                            <button onClick={() => setDetailModalOpen(false)} className="text-[#999] hover:text-[#555]">
                                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -231,36 +231,36 @@ export default function AdminOrdersPage() {
                         </div>
 
                         <div className="space-y-6">
-                            <div className="bg-stone-50 rounded-lg p-4">
-                                <h4 className="font-semibold text-stone-900 mb-3">Información del Cliente</h4>
+                            <div className="bg-[#faf9f8] rounded-lg p-4">
+                                <h4 className="font-semibold text-[#111] mb-3">Información del Cliente</h4>
                                 <div className="space-y-2 text-sm">
-                                    <div><span className="text-stone-500">Nombre:</span> <span className="font-medium">{selectedOrder.full_name}</span></div>
-                                    <div><span className="text-stone-500">Email:</span> <span className="font-medium">{selectedOrder.email}</span></div>
-                                    <div><span className="text-stone-500">Dirección:</span> <span className="font-medium">{selectedOrder.address}</span></div>
+                                    <div><span className="text-[#777]">Nombre:</span> <span className="font-medium">{selectedOrder.full_name}</span></div>
+                                    <div><span className="text-[#777]">Email:</span> <span className="font-medium">{selectedOrder.email}</span></div>
+                                    <div><span className="text-[#777]">Dirección:</span> <span className="font-medium">{selectedOrder.address}</span></div>
                                 </div>
                             </div>
 
                             <div>
-                                <h4 className="font-semibold text-stone-900 mb-3">Items</h4>
+                                <h4 className="font-semibold text-[#111] mb-3">Items</h4>
                                 <div className="space-y-3">
                                     {selectedOrder.items?.map((item: any) => (
-                                        <div key={item.id} className="border border-stone-200 rounded-lg p-4">
+                                        <div key={item.id} className="border border-[#e8e4df] rounded-lg p-4">
                                             <div className="flex justify-between items-start mb-2">
                                                 <div>
-                                                    <div className="font-medium text-stone-900">{item.product_name}</div>
-                                                    <div className="text-sm text-stone-500">Cantidad: {item.quantity}</div>
+                                                    <div className="font-medium text-[#111]">{item.product_name}</div>
+                                                    <div className="text-sm text-[#777]">Cantidad: {item.quantity}</div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <div className="font-bold text-amber-600">${item.base_price}</div>
+                                                    <div className="font-bold text-[#111]">${item.base_price}</div>
                                                 </div>
                                             </div>
                                             {item.options?.length > 0 && (
                                                 <div className="mt-2 pt-2 border-t border-stone-100">
-                                                    <div className="text-xs text-stone-500 mb-1">Opciones:</div>
+                                                    <div className="text-xs text-[#777] mb-1">Opciones:</div>
                                                     {item.options.map((opt: any) => (
-                                                        <div key={opt.id} className="text-sm text-stone-600">
+                                                        <div key={opt.id} className="text-sm text-[#555]">
                                                             • {opt.option_name}: {opt.value_name}
-                                                            {opt.extra_price > 0 && <span className="text-amber-600"> (+${opt.extra_price})</span>}
+                                                            {opt.extra_price > 0 && <span className="text-[#111]"> (+${opt.extra_price})</span>}
                                                         </div>
                                                     ))}
                                                 </div>
@@ -270,10 +270,10 @@ export default function AdminOrdersPage() {
                                 </div>
                             </div>
 
-                            <div className="border-t border-stone-200 pt-4">
+                            <div className="border-t border-[#e8e4df] pt-4">
                                 <div className="flex justify-between items-center text-lg font-bold">
                                     <span>Total:</span>
-                                    <span className="text-amber-600">${selectedOrder.total_price}</span>
+                                    <span className="text-[#111]">${selectedOrder.total_price}</span>
                                 </div>
                             </div>
 
@@ -284,14 +284,14 @@ export default function AdminOrdersPage() {
                                     return (
                                         <div key={status.value} className="flex items-center">
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
-                                                isCurrent ? "bg-amber-500 text-white" :
+                                                isCurrent ? "bg-[#111] text-white" :
                                                 isPast ? "bg-green-500 text-white" :
-                                                "bg-stone-200 text-stone-400"
+                                                "bg-[#e2ded9] text-[#999]"
                                             }`}>
                                                 {isPast ? "✓" : idx + 1}
                                             </div>
                                             {idx < STATUS_CONFIG.length - 1 && (
-                                                <div className={`w-8 h-0.5 ${isPast ? "bg-green-500" : "bg-stone-200"}`} />
+                                                <div className={`w-8 h-0.5 ${isPast ? "bg-green-500" : "bg-[#e2ded9]"}`} />
                                             )}
                                         </div>
                                     );
@@ -304,9 +304,9 @@ export default function AdminOrdersPage() {
 
             {confirmModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-                        <h3 className="text-xl font-bold text-stone-900 mb-4">Confirmar cambio de estado</h3>
-                        <p className="text-stone-600 mb-6">
+                    <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+                        <h3 className="text-xl font-bold text-[#111] mb-4">Confirmar cambio de estado</h3>
+                        <p className="text-[#555] mb-6">
                             ¿Avanzar la orden <strong>#{confirmModal.order.id}</strong> de{" "}
                             <strong>{getStatusConfig(confirmModal.order.status).label}</strong> a{" "}
                             <strong>{getStatusConfig(confirmModal.nextStatus).label}</strong>?
@@ -314,13 +314,13 @@ export default function AdminOrdersPage() {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setConfirmModal(null)}
-                                className="flex-1 px-4 py-2 text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"
+                                className="flex-1 px-4 py-2 text-stone-700 hover:bg-[#f5f2ef] rounded-lg transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={confirmAdvance}
-                                className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors"
+                                className="flex-1 px-4 py-2 bg-[#111] hover:bg-[#C4612E] text-white font-medium rounded-lg transition-colors"
                             >
                                 Confirmar
                             </button>
