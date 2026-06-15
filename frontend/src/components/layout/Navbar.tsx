@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { locales } from "@/lib/i18n";
+import MuseumImage from "@/components/ui/MuseumImage";
 
 export default function Navbar({ locale }: { locale: string }) {
     const pathname = usePathname();
@@ -109,11 +110,20 @@ export default function Navbar({ locale }: { locale: string }) {
                 .locale-btn:not(.active) { opacity: 0.4; }
                 .locale-btn:hover { opacity: 1; }
 
-                /* Mobile */
-                @media (max-width: 768px) {
+                .nav-left-links {
+                    display: flex;
+                    gap: 28px;
+                }
+
+                .nav-right-locale {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                /* Tablet & Small Desktop */
+                @media (max-width: 1400px) {
                     .nav-inner { grid-template-columns: auto 1fr auto; padding: 0 20px; }
-                    .nav-left-links { display: none; }
-                    .nav-right-locale { display: none; }
+                    .nav-left-links { display: none !important; }
+                    .nav-right-locale { display: none !important; }
                 }
             `}</style>
 
@@ -133,13 +143,20 @@ export default function Navbar({ locale }: { locale: string }) {
                                 <line x1="0" y1="11" x2="18" y2="11" stroke="currentColor" strokeWidth="1.2"/>
                             </svg>
                         </button>
-                        <div className="nav-left-links" style={{ display: "flex", gap: "28px" }}>
+                        <div className="nav-left-links">
                             <Link
                                 href="/products"
                                 className="nav-link"
                                 style={{ color: isTransparent ? "#fff" : "#1c1917" }}
                             >
                                 {t("products")}
+                            </Link>
+                            <Link
+                                href="/fabricacion"
+                                className="nav-link"
+                                style={{ color: isTransparent ? "#fff" : "#1c1917" }}
+                            >
+                                {t("fabricacion") || "Fabricación"}
                             </Link>
                             <Link
                                 href="/about"
@@ -171,7 +188,7 @@ export default function Navbar({ locale }: { locale: string }) {
 
                     {/* RIGHT */}
                     <div className="nav-right">
-                        <div className="nav-right-locale" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div className="nav-right-locale">
                             {locales.map((loc, i) => (
                                 <span key={loc} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                                     <Link
@@ -212,46 +229,82 @@ export default function Navbar({ locale }: { locale: string }) {
                         background: "#fff",
                         display: "flex", flexDirection: "column",
                         paddingTop: "64px",
+                        overflowY: "auto", // Allow scrolling if content is too tall
                     }}
                 >
-                    <div style={{ padding: "40px 40px 20px", borderBottom: "1px solid #f0ece7" }}>
+                    <div style={{ padding: "40px 40px 20px", borderBottom: "1px solid #f0ece7", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "24px", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                            Artesena
+                        </span>
                         <button
                             onClick={() => setMenuOpen(false)}
                             style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex" }}
                         >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1917" strokeWidth="1.2">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1c1917" strokeWidth="1.2">
                                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                             </svg>
                         </button>
                     </div>
-                    <nav style={{ padding: "48px 40px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                        {[
-                            { href: "/", label: t("home") || "Inicio" },
-                            { href: "/products", label: t("products") || "Productos" },
-                            { href: "/about", label: t("about") || "Nosotros" },
-                            { href: "/contact", label: t("contact") || "Contacto" },
-                            { href: "/cart", label: t("cart") || "Carrito" },
-                        ].map(({ href, label }) => (
-                            <Link
-                                key={href}
-                                href={href as any}
-                                onClick={() => setMenuOpen(false)}
-                                style={{
-                                    fontFamily: "'Cormorant Garamond', serif",
-                                    fontSize: "clamp(32px, 6vw, 56px)",
-                                    fontWeight: 300,
-                                    letterSpacing: "-0.01em",
-                                    color: "#1c1917",
-                                    textDecoration: "none",
-                                    lineHeight: 1.15,
-                                    transition: "opacity 0.2s",
-                                }}
-                                className="nav-link-menu"
-                            >
-                                {label}
-                            </Link>
-                        ))}
-                    </nav>
+
+                    <div className="menu-content" style={{ display: "flex", flex: 1, padding: "40px", flexWrap: "wrap", gap: "60px" }}>
+                        {/* Links Column */}
+                        <nav style={{ display: "flex", flexDirection: "column", gap: "16px", flex: "1 1 300px" }}>
+                            {[
+                                { href: "/", label: t("home") || "Inicio" },
+                                { href: "/products", label: t("products") || "Productos" },
+                                { href: "/fabricacion", label: t("fabricacion") || "Fabricación" },
+                                { href: "/about", label: t("about") || "Nosotros" },
+                                { href: "/contact", label: t("contact") || "Contacto" },
+                                { href: "/cart", label: t("cart") || "Carrito" },
+                            ].map(({ href, label }) => (
+                                <Link
+                                    key={href}
+                                    href={href as any}
+                                    onClick={() => setMenuOpen(false)}
+                                    style={{
+                                        fontFamily: "'Cormorant Garamond', serif",
+                                        fontSize: "clamp(40px, 6vw, 64px)",
+                                        fontWeight: 300,
+                                        letterSpacing: "-0.01em",
+                                        color: "#1c1917",
+                                        textDecoration: "none",
+                                        lineHeight: 1.1,
+                                        transition: "opacity 0.2s, transform 0.2s",
+                                    }}
+                                    className="nav-link-menu"
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.opacity = "0.6";
+                                        e.currentTarget.style.transform = "translateX(10px)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.opacity = "1";
+                                        e.currentTarget.style.transform = "translateX(0)";
+                                    }}
+                                >
+                                    {label}
+                                </Link>
+                            ))}
+                        </nav>
+
+                        {/* Museum Gallery Column */}
+                        <div style={{ flex: "2 1 500px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "30px", alignItems: "center" }}>
+                            <MuseumImage 
+                                src="/img/art/art1.png" 
+                                alt="Art 1"
+                                style={{ transform: "rotate(-2deg)", maxWidth: "300px", margin: "0 auto" }}
+                            />
+                            <MuseumImage 
+                                src="/img/art/art3.png" 
+                                alt="Art 3"
+                                style={{ transform: "rotate(1deg)", maxWidth: "300px", margin: "0 auto", marginTop: "40px" }}
+                            />
+                            <MuseumImage 
+                                src="/img/art/RT4.jpg" 
+                                alt="Art 4"
+                                style={{ transform: "rotate(-1deg)", maxWidth: "300px", margin: "0 auto" }}
+                            />
+                        </div>
+                    </div>
                 </div>
             )}
         </>

@@ -2,6 +2,7 @@
   "navbar": {
     "home": "Home",
     "products": "Products",
+    "fabricacion": "Crafting",
     "cart": "Cart",
     "about": "About",
     "language": "Language",
@@ -144,6 +145,21 @@
     "phone": "Phone",
     "address": "Address",
     "message": "Send us a message"
+  },
+  "fabricacion": {
+    "metaTitle": "The Crafting Process | Artesena",
+    "metaDescription": "Discover how our Bolivian artisan instruments are handcrafted.",
+    "title": "The Crafting Process",
+    "section1Title": "Carving and Hollowing",
+    "section1Desc": "The outside shape is formed with rasps and the internal \"hollowing\" is done with a gouge. It is critical to achieve an even and perfect thickness so that the charango has good resonance.",
+    "section2Title": "Top and Bracing",
+    "section2Desc": "The \"tranquillas\" are added and the top (like spruce) is attached. This is a vital step that requires using the finest materials (such as AAA grade tops) to ensure a quality sound.",
+    "section3Title": "Fretboard and Headstock",
+    "section3Desc": "The surface is leveled and the fretboard is glued along with the headstock veneer. It must be pressed firmly with glue and respect a drying process of at least 12 hours for arm stability.",
+    "section4Title": "Fretting",
+    "section4Desc": "Once the woods and glues have dried, the frets are placed on the fretboard. This phase defines the precision of the notes and the scale of the instrument.",
+    "section5Title": "Final Finish",
+    "section5Desc": "It constitutes the protection and aesthetics of the instrument. Here the natural colors of the woods are respected (without dyeing) and modern additions are added if the musician requires it, such as the amplification system (piezo electric)."
   },
   "common": {
     "loading": "Loading...",

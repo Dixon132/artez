@@ -40,10 +40,9 @@ export default function HomeClient() {
             </section>
 
             <HomeEditorial 
-                bgImageLeft="/img/charango.png"
-                overlayLeft="rgba(196, 97, 46, 0.8)"
-                bgImageRight="/img/art/art1.png"
-                overlayRight="rgba(245, 240, 232, 0.93)"
+                bgVideo="/video/tallado.mp4"
+                overlayLeft="rgba(128, 0, 128, 0.4)"
+                overlayRight="rgba(0, 0, 0, 0.7)"
             />
 
             <section className="home-section">
@@ -87,13 +86,13 @@ export default function HomeClient() {
                     side="left"
                 />
                 <HomeQuoteBlock 
-                    image="/img/people/Gustavo-Santaolalla.png"
+                    image="/img/people/ernestoo.png"
                     quoteHtml="El charango es un<br/>quirquincho que ha<br/>aprendido a cantar."
                     author="Ernesto Cavour"
                     side="right"
                 />
                 <HomeQuoteBlock 
-                    image="/img/people/Gustavo-Santaolalla.png"
+                    image="/img/people/vadikk.png"
                     quoteHtml="La música es un<br/>arte colectivo."
                     author="Vadik Barron"
                     side="left"

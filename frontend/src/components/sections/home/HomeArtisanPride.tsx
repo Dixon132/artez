@@ -60,7 +60,7 @@ export default function HomeArtisanPride() {
                     fontFamily: "'Great Vibes', cursive",
                     fontSize: "clamp(2.5rem, 5vw, 4rem)",
                     lineHeight: 0.5,
-                    marginRight: "clamp(40px, 10vw, 120px)", marginBottom: "-20px",
+                    marginRight: "clamp(40px, 10vw, 120px)", marginBottom: "10px",
                     transform: "rotate(-4deg)",
                     textShadow: "0 2px 10px rgba(0,0,0,0.2)"
                 }}>

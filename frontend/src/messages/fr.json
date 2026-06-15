@@ -2,6 +2,7 @@
   "navbar": {
     "home": "Accueil",
     "products": "Produits",
+    "fabricacion": "Fabrication",
     "cart": "Panier",
     "about": "À propos",
     "language": "Langue",
@@ -144,6 +145,21 @@
     "phone": "Téléphone",
     "address": "Adresse",
     "message": "Envoyez-nous un message"
+  },
+  "fabricacion": {
+    "metaTitle": "Le Processus de Fabrication | Artesena",
+    "metaDescription": "Découvrez comment nos instruments artisanaux boliviens sont fabriqués étape par étape.",
+    "title": "Le Processus de Fabrication",
+    "section1Title": "Sculpture et Évidage",
+    "section1Desc": "La forme extérieure est donnée avec des râpes et le \"creusement\" interne est fait avec une gouge. Il est essentiel d'obtenir une épaisseur uniforme et parfaite pour que le charango ait une bonne résonance.",
+    "section2Title": "Table et Renforts",
+    "section2Desc": "Les \"tranquillas\" sont ajoutées et la table supérieure (comme l'épicéa) est collée. C'est une étape vitale qui nécessite l'utilisation des matériaux les plus fins (comme les tables de qualité AAA) pour garantir un son de qualité.",
+    "section3Title": "Touche et Tête",
+    "section3Desc": "La surface est nivelée et la touche est collée avec le placage de la tête. Il doit être fermement pressé avec de la colle et respecter un processus de séchage d'au moins 12 heures pour la stabilité du bras.",
+    "section4Title": "Frettage",
+    "section4Desc": "Une fois les bois et les colles secs, les frettes sont placées sur la touche. Cette phase définit la précision des notes et l'échelle de l'instrument.",
+    "section5Title": "Finition Finale",
+    "section5Desc": "Elle constitue la protection et l'esthétique de l'instrument. Ici, les couleurs naturelles des bois sont respectées (sans teinture) et des ajouts modernes sont ajoutés si le musicien le souhaite, comme le système d'amplification (piézo-électrique)."
   },
   "common": {
     "loading": "Chargement...",

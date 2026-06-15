@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -50,6 +49,7 @@ export default function HomeWoodPhilosophy() {
     return (
         <section
             ref={sectionRef}
+            className="philosophy-block"
             style={{
                 position: "relative",
                 minHeight: "100vh",

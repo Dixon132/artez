@@ -27,6 +27,12 @@ export const routing = defineRouting({
             es: "/nosotros",
             fr: "/a-propos",
         },
+        // Forced reload for fabricacion routing
+        "/fabricacion": {
+            en: "/manufacturing",
+            es: "/fabricacion",
+            fr: "/fabrication",
+        },
         "/checkout": {
             en: "/checkout",
             es: "/pagar",

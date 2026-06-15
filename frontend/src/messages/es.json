@@ -2,6 +2,7 @@
   "navbar": {
     "home": "Inicio",
     "products": "Productos",
+    "fabricacion": "Fabricación",
     "cart": "Carrito",
     "about": "Nosotros",
     "language": "Idioma",
@@ -144,6 +145,21 @@
     "phone": "Teléfono",
     "address": "Dirección",
     "message": "Envíanos un mensaje"
+  },
+  "fabricacion": {
+    "metaTitle": "El Proceso de Fabricación | Artesena",
+    "metaDescription": "Descubre cómo se construyen nuestros instrumentos artesanales bolivianos paso a paso.",
+    "title": "El Proceso de Fabricación",
+    "section1Title": "El Tallado y Vaciado",
+    "section1Desc": "Se da la forma por fuera con escofinas y se hace el \"vaciado\" interno con gubia. Es crítico lograr el espesor parejo y perfecto para que el charango tenga una buena resonancia.",
+    "section2Title": "Tapa y Refuerzos",
+    "section2Desc": "Se añaden las \"tranquillas\" y se adhiere la tapa superior (como el pino abeto). Es un paso vital que requiere usar los materiales más finos (como tapas triple A) para garantizar un sonido de calidad.",
+    "section3Title": "Diapasón y Paleta",
+    "section3Desc": "Se nivela la superficie y se pega el diapasón junto con el enchape de la cabeza. Debe prensarse (\"amarrarse\") firmemente con cola y respetar un proceso de secado de al menos 12 horas para la estabilidad del brazo.",
+    "section4Title": "El Entrastado",
+    "section4Desc": "Una vez que las maderas y pegamentos han secado, se colocan los trastes sobre el diapasón. Esta fase define la precisión de las notas y la escala del instrumento.",
+    "section5Title": "Terminación Final",
+    "section5Desc": "Constituye la protección y estética del instrumento. Aquí se respetan los colores naturales de las maderas (sin teñir) y se agregan aditamentos modernos si el músico lo requiere, como el sistema de amplificación (piezo eléctrico)."
   },
   "common": {
     "loading": "Cargando...",
