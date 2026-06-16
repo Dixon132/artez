@@ -119,11 +119,18 @@ export default function Navbar({ locale }: { locale: string }) {
                     display: flex;
                     align-items: center;
                     gap: 10px;
-                /* Tablet & Small Desktop */
-                @media (max-width: 1400px) {
-                    .nav-inner { grid-template-columns: auto 1fr auto; padding: 0 20px; }
+                }
+
+                /* On tablet and small desktop, hide text nav links — hamburger only */
+                @media (max-width: 1399px) {
                     .nav-left-links { display: none !important; }
                     .nav-right-locale { display: none !important; }
+                }
+
+                /* Mobile: tighten padding and shrink logo */
+                @media (max-width: 767px) {
+                    .nav-inner { padding: 0 16px !important; }
+                    .nav-logo { font-size: 17px !important; letter-spacing: 0.12em !important; }
                 }
             `}</style>
 
@@ -284,6 +291,36 @@ export default function Navbar({ locale }: { locale: string }) {
                                     {label}
                                 </Link>
                             ))}
+
+                            {/* Language switcher — visible in mobile menu when top locale buttons are hidden */}
+                            <div style={{ marginTop: "32px", paddingTop: "24px", borderTop: "1px solid #f0ece7", display: "flex", alignItems: "center", gap: "16px" }}>
+                                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "10px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#9e9894" }}>
+                                    {t("language")}
+                                </span>
+                                {locales.map((loc, i) => (
+                                    <span key={loc} style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                                        <Link
+                                            href={getLocaleSwitchHref()}
+                                            locale={loc}
+                                            onClick={() => setMenuOpen(false)}
+                                            style={{
+                                                fontFamily: "'DM Sans', sans-serif",
+                                                fontSize: "14px",
+                                                fontWeight: loc === currentLocale ? 700 : 400,
+                                                letterSpacing: "0.12em",
+                                                textTransform: "uppercase",
+                                                color: loc === currentLocale ? "#1c1917" : "#b0a89e",
+                                                textDecoration: "none",
+                                            }}
+                                        >
+                                            {loc.toUpperCase()}
+                                        </Link>
+                                        {i < locales.length - 1 && (
+                                            <span style={{ color: "#e0dbd6" }}>|</span>
+                                        )}
+                                    </span>
+                                ))}
+                            </div>
                         </nav>
 
                         {/* Museum Gallery Column */}

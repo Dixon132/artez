@@ -68,21 +68,21 @@ export default function HomeEditorial({
                 {!bgVideo && bgImageRight && <Image src={bgImageRight} alt="Background" fill style={{ objectFit: "cover" }} />}
                 {!bgVideo && bgImageRight && <div style={{ position: "absolute", inset: 0, backgroundColor: overlayRight }} />}
                 <div style={{ position: "relative", zIndex: 2 }}>
-                    <p style={{ fontSize: "10px", letterSpacing: "0.5em", textTransform: "uppercase", color: "#999", fontFamily: "'DM Sans', sans-serif", marginBottom: "28px" }}>{t("editorialEyebrow")}</p>
-                    <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.4rem, 5.5vw, 5.5rem)", fontWeight: 700, color: "#1a1a1a", lineHeight: 1.05, margin: "0 0 28px", letterSpacing: "-0.02em" }}>
+                    <p style={{ fontSize: "10px", letterSpacing: "0.5em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", fontFamily: "'DM Sans', sans-serif", marginBottom: "28px" }}>{t("editorialEyebrow")}</p>
+                    <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.4rem, 5.5vw, 5.5rem)", fontWeight: 700, color: "#ffffff", lineHeight: 1.05, margin: "0 0 28px", letterSpacing: "-0.02em" }}>
                         <span dangerouslySetInnerHTML={{ __html: t("editorialTitle") }} />
                         <em style={{ color: "#C4612E", fontWeight: 400 }}>{t("editorialTitleEm")}</em>
                     </h2>
                     <div style={{ width: "60px", height: "2px", background: "#C4612E", marginBottom: "28px" }} />
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(0.95rem, 1.4vw, 1.15rem)", color: "#555", lineHeight: 1.8, maxWidth: "440px", marginBottom: "40px", fontWeight: 300 }}>{t("editorialDesc")}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(0.95rem, 1.4vw, 1.15rem)", color: "rgba(255,255,255,0.75)", lineHeight: 1.8, maxWidth: "440px", marginBottom: "40px", fontWeight: 300 }}>{t("editorialDesc")}</p>
                     <Link href="/products">
-                        <button className="editorial-hover-btn" style={{ display: "inline-block", padding: "14px 40px", border: "1.5px solid #1a1a1a", background: "transparent", color: "#1a1a1a", fontFamily: "'DM Sans', sans-serif", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase", cursor: "pointer" }}>{t("viewCollection")}</button>
+                        <button className="editorial-hover-btn" style={{ display: "inline-block", padding: "14px 40px", border: "1.5px solid rgba(255,255,255,0.7)", background: "transparent", color: "#ffffff", fontFamily: "'DM Sans', sans-serif", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase", cursor: "pointer" }}>{t("viewCollection")}</button>
                     </Link>
                 </div>
             </div>
             <style>{`
                 .editorial-hover-btn { transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease; }
-                .editorial-hover-btn:hover { background: #ffffff !important; color: #111 !important; transform: translateY(-2px); }
+                .editorial-hover-btn:hover { background: #ffffff !important; color: #1c1917 !important; transform: translateY(-2px); }
                 @media (max-width: 768px) {
                     .editorial-block { grid-template-columns: 1fr !important; }
                 }

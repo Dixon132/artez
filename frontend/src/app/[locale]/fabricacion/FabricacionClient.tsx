@@ -73,13 +73,15 @@ export default function FabricacionClient() {
                 }
 
                 .fab-desc {
-                    font-family: 'Great Vibes', cursive;
-                    font-size: clamp(24px, 4vw, 42px);
-                    color: rgba(255, 255, 255, 0.95);
-                    max-width: 900px;
-                    line-height: 1.2;
-                    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+                    font-family: 'Cormorant Garamond', serif;
+                    font-style: italic;
+                    font-size: clamp(1.6rem, 3vw, 2.8rem);
+                    color: #ffffff;
+                    max-width: 700px;
+                    line-height: 1.5;
                     font-weight: 400;
+                    letter-spacing: 0.01em;
+                    mix-blend-mode: difference;
                 }
 
                 @media (max-width: 768px) {

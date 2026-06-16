@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 interface OptimizedVideoProps {
     srcWebm?: string;
@@ -20,43 +20,39 @@ export default function OptimizedVideo({
     overlayColor = "transparent",
 }: OptimizedVideoProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const [inView, setInView] = useState(false);
-    const [shouldLoad, setShouldLoad] = useState(false);
+    const videoSrc = srcMp4 || srcWebm;
 
     useEffect(() => {
         const video = videoRef.current;
         if (!video) return;
 
+        const play = () => video.play().catch(() => {});
+        const pause = () => video.pause();
+
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
-                        setInView(true);
-                        setShouldLoad(true);
-                        // Safe play attempt
-                        setTimeout(() => {
-                            if (videoRef.current) {
-                                videoRef.current.play().catch(() => {});
-                            }
-                        }, 50);
+                        play();
                     } else {
-                        setInView(false);
-                        if (videoRef.current) {
-                            videoRef.current.pause();
-                        }
+                        pause();
                     }
                 });
             },
-            { rootMargin: "200px 0px" }
+            { threshold: 0.1 }
         );
 
         observer.observe(video);
+
+        // KEY FIX: if element is already visible on mount (back-navigation),
+        // IntersectionObserver won't fire — so we check manually.
+        const rect = video.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+            play();
+        }
+
         return () => observer.disconnect();
     }, []);
-
-    // We use the MP4 source if available, fallback to WebM, to guarantee it works. 
-    // Setting src directly on the video tag avoids all React <source> update issues.
-    const videoSrc = shouldLoad ? (srcMp4 || srcWebm) : undefined;
 
     return (
         <div className={`overflow-hidden ${className}`} style={style}>
@@ -66,15 +62,11 @@ export default function OptimizedVideo({
                 muted
                 loop
                 playsInline
-                preload="metadata"
-                poster={poster}
+                autoPlay
+                preload="auto"
                 className="w-full h-full object-cover"
-                style={{ 
-                    opacity: shouldLoad ? 1 : 0.7, 
-                    transition: "opacity 0.5s ease"
-                }}
             />
-            
+
             {/* Color Overlay */}
             <div
                 className="absolute inset-0 pointer-events-none"

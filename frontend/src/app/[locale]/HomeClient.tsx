@@ -41,8 +41,8 @@ export default function HomeClient() {
 
             <HomeEditorial 
                 bgVideo="/video/tallado.mp4"
-                overlayLeft="rgba(128, 0, 128, 0.4)"
-                overlayRight="rgba(0, 0, 0, 0.7)"
+                overlayLeft="rgba(0, 0, 0, 0.6)"
+                overlayRight="rgba(0, 0, 0, 0.3)"
             />
 
             <section className="home-section">

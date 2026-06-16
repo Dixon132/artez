@@ -66,6 +66,10 @@ const nextConfig: NextConfig = {
       { source: "/fr/a-propos", destination: "/fr/about" },
       { source: "/fr/paiement", destination: "/fr/checkout" },
       { source: "/fr/paiement/success", destination: "/fr/checkout/success" },
+      // Fabricacion localized routes
+      { source: "/es/fabricacion", destination: "/es/fabricacion" },
+      { source: "/en/manufacturing", destination: "/en/fabricacion" },
+      { source: "/fr/fabrication", destination: "/fr/fabricacion" },
     ];
   },
 };
