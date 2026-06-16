@@ -1,83 +1,80 @@
 "use client";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Image from "next/image";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function HomeCTA() {
-    const t = useTranslations("home");
-
     useEffect(() => {
-        gsap.fromTo(".cta-content > *", { y: 40, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.15, duration: 1.2, ease: "power3.out", scrollTrigger: { trigger: ".cta-section", start: "top 70%" } });
-        gsap.fromTo(".cta-stat", { y: 20, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.1, duration: 1, ease: "power3.out", scrollTrigger: { trigger: ".cta-stats-container", start: "top 85%" } });
+        gsap.fromTo(".cta-left > *", { x: -50, opacity: 0 }, { x: 0, opacity: 1, stagger: 0.15, duration: 1.2, ease: "power3.out", scrollTrigger: { trigger: ".cta-black-section", start: "top 75%" } });
+        gsap.fromTo(".cta-right > *", { x: 50, opacity: 0 }, { x: 0, opacity: 1, stagger: 0.15, duration: 1.2, ease: "power3.out", scrollTrigger: { trigger: ".cta-black-section", start: "top 75%" } });
     }, []);
 
     return (
-        <section className="cta-section" style={{ position: "relative", minHeight: "90vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflow: "hidden", textAlign: "center", padding: "100px 20px" }}>
+        <section className="cta-black-section" style={{ background: "#000000", minHeight: "80vh", display: "grid", gridTemplateColumns: "1fr 1fr", alignItems: "center", gap: "80px", padding: "clamp(60px, 10vh, 120px) 10%", position: "relative", overflow: "hidden" }}>
             
-            {/* Immersive Background */}
-            <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-                <Image 
-                    src="/img/art/art1.png" 
-                    alt="Fondo Charango" 
-                    fill 
-                    style={{ objectFit: "cover", objectPosition: "center" }} 
-                    quality={90}
-                />
-                {/* Heavy Warm Cream Overlay */}
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(245, 240, 232, 0.88), rgba(245, 240, 232, 0.95))" }} />
-                {/* Subtle vignette/border burn */}
-                <div style={{ position: "absolute", inset: 0, boxShadow: "inset 0 0 150px rgba(196, 97, 46, 0.15)", pointerEvents: "none" }} />
-            </div>
-
-            <div className="cta-content" style={{ position: "relative", zIndex: 1, maxWidth: "900px", width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                
-                {/* Decorative top element */}
-                <div style={{ width: "2px", height: "60px", background: "#C4612E", marginBottom: "30px" }} />
-
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", letterSpacing: "0.4em", textTransform: "uppercase", color: "#C4612E", marginBottom: "24px", fontWeight: 600 }}>
-                    {t("ctaEyebrow")}
-                </p>
-                
-                <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(3rem, 8vw, 7rem)", fontWeight: 400, color: "#1c1917", lineHeight: 0.95, margin: "0 0 24px", letterSpacing: "-0.02em" }}>
-                    <span dangerouslySetInnerHTML={{ __html: t("ctaTitle") }} />
-                    <br />
-                    <em style={{ color: "#C4612E", fontStyle: "italic" }}>{t("ctaTitleEm")}</em>
-                    <span dangerouslySetInnerHTML={{ __html: t("ctaTitleEnd") }} />
+            {/* Left Side */}
+            <div className="cta-left" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(4.5rem, 8vw, 8rem)", fontWeight: 400, color: "#ffffff", lineHeight: 0.9, margin: "0 0 20px", letterSpacing: "-0.02em" }}>
+                    Artesena
                 </h2>
                 
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(1rem, 1.4vw, 1.2rem)", color: "#5c5955", lineHeight: 1.8, maxWidth: "550px", margin: "0 auto 48px", fontWeight: 400 }}>
-                    {t("ctaDesc")}
-                </p>
+                <h3 style={{ fontFamily: "'Inter', sans-serif", fontSize: "clamp(1.5rem, 3vw, 2.5rem)", fontWeight: 800, color: "#FF6B00", lineHeight: 1.1, margin: "0 0 24px", letterSpacing: "-0.01em" }}>
+                    Tu próximo instrumento te espera
+                </h3>
                 
-                <Link href="/products">
-                    <button className="cta-btn-rustic" style={{ display: "inline-flex", alignItems: "center", gap: "12px", padding: "18px 50px", border: "1px solid #1c1917", background: "transparent", color: "#1c1917", fontFamily: "'DM Sans', sans-serif", fontSize: "12px", letterSpacing: "0.25em", textTransform: "uppercase", cursor: "pointer" }}>
-                        <span>{t("ctaBtn")}</span>
-                    </button>
-                </Link>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(1rem, 1.2vw, 1.2rem)", color: "#a3a3a3", lineHeight: 1.7, maxWidth: "500px", margin: 0, fontWeight: 400 }}>
+                    Exploremos juntos, crea tu propio instrumento con nosotros y descubre la verdadera magia de la luthería boliviana.
+                </p>
+            </div>
 
-                {/* Stats Container */}
-                <div className="cta-stats-container" style={{ display: "flex", gap: "clamp(20px, 5vw, 80px)", justifyContent: "center", marginTop: "100px", flexWrap: "wrap", width: "100%", maxWidth: "800px", borderTop: "1px solid rgba(196, 97, 46, 0.2)", paddingTop: "60px" }}>
-                    {[
-                        { num: t("stat1Num"), label: t("stat1Label") },
-                        { num: t("stat2Num"), label: t("stat2Label") },
-                        { num: t("stat3Num"), label: t("stat3Label") },
-                    ].map((item, i) => (
-                        <div key={i} className="cta-stat" style={{ textAlign: "center", flex: "1 1 min-content" }}>
-                            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(3rem, 5vw, 4.5rem)", fontWeight: 300, color: "#1c1917", lineHeight: 1, margin: "0 0 16px" }}>{item.num}</p>
-                            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "10px", letterSpacing: "0.25em", textTransform: "uppercase", color: "#8a8580", whiteSpace: "nowrap" }}>{item.label}</p>
-                        </div>
-                    ))}
+            {/* Right Side */}
+            <div className="cta-right" style={{ display: "flex", flexDirection: "column", gap: "60px" }}>
+                
+                {/* Stats */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px" }}>
+                    <div>
+                        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: "clamp(2.5rem, 4vw, 3.5rem)", color: "#FF6B00", fontWeight: 800, margin: "0 0 8px", lineHeight: 1 }}>+30</p>
+                        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.2em", color: "#8a8a8a", margin: 0 }}>Años de arte</p>
+                    </div>
+                    <div>
+                        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: "clamp(2.5rem, 4vw, 3.5rem)", color: "#FF6B00", fontWeight: 800, margin: "0 0 8px", lineHeight: 1 }}>100%</p>
+                        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.2em", color: "#8a8a8a", margin: 0 }}>Hecho desde cero</p>
+                    </div>
+                    <div style={{ gridColumn: "1 / -1" }}>
+                        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: "clamp(3.5rem, 5vw, 4.5rem)", color: "#FF6B00", fontWeight: 800, margin: "0 0 8px", lineHeight: 1 }}>∞</p>
+                        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.25em", color: "#ffffff", margin: 0 }}>Envíos a TODO EL MUNDO</p>
+                    </div>
                 </div>
+
+                {/* Payment Methods */}
+                <div style={{ borderTop: "1px solid #333333", paddingTop: "40px" }}>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "13px", color: "#ffffff", marginBottom: "24px", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 600 }}>Nuestros métodos de pago</p>
+                    <div style={{ display: "flex", gap: "20px", alignItems: "center", flexWrap: "wrap" }}>
+                        {/* PayPal Badge */}
+                        <div style={{ background: "#ffffff", padding: "12px 24px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <span style={{ color: "#003087", fontFamily: "Arial, sans-serif", fontWeight: 900, fontStyle: "italic", fontSize: "1.2rem", letterSpacing: "-0.5px" }}>Pay<span style={{ color: "#009cde" }}>Pal</span></span>
+                        </div>
+                        {/* Western Union Badge */}
+                        <div style={{ background: "#FFD100", padding: "12px 24px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <span style={{ color: "#000000", fontFamily: "Arial, sans-serif", fontWeight: 900, fontSize: "1.1rem", letterSpacing: "-0.5px" }}>Western Union</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <style>{`
-                .cta-btn-rustic { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
-                .cta-btn-rustic:hover { background: #1c1917 !important; color: #F5F0E8 !important; border-color: #1c1917 !important; transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+                @media (max-width: 900px) {
+                    .cta-black-section {
+                        grid-template-columns: 1fr !important;
+                        padding: 80px 5% !important;
+                        text-align: left !important;
+                        gap: 60px !important;
+                    }
+                    .cta-left h2 { font-size: 4rem !important; }
+                }
             `}</style>
         </section>
     );
